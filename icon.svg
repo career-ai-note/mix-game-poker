@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="112" fill="#4a1921"/>
+<rect x="22" y="22" width="468" height="468" rx="94" fill="none" stroke="#d3ab57" stroke-width="10"/>
+<g transform="translate(256 262)">
+<rect x="-150" y="-150" width="170" height="236" rx="18" fill="#ecdfc3" transform="rotate(-14)"/>
+<rect x="-20" y="-150" width="170" height="236" rx="18" fill="#fbf6ea" transform="rotate(12)"/>
+<text x="-70" y="-35" font-family="Georgia,serif" font-size="120" font-weight="700" fill="#1d1d24" text-anchor="middle" transform="rotate(-14)">♠</text>
+<text x="62" y="-20" font-family="Georgia,serif" font-size="120" font-weight="700" fill="#c4202f" text-anchor="middle" transform="rotate(12)">♥</text>
+</g>
+<text x="256" y="455" font-family="Arial Narrow,Arial,sans-serif" font-size="92" font-weight="800" letter-spacing="10" fill="#d3ab57" text-anchor="middle">MIX</text>
+</svg>

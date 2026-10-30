@@ -1,0 +1,1678 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MIX Game Poker</title>
+<meta name="description" content="HORSE・2-7/A-5トリプルドロー・バドゥーギ・PLO・バデューシー・バデーシーの11種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
+<meta name="theme-color" content="#120d0c">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="MIX Game Poker">
+<meta property="og:description" content="HORSE・2-7/A-5トリプルドロー・バドゥーギ・PLO・バデューシー・バデーシーの11種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
+<!-- 公開後のURLが決まったら、og:image を https://（あなたのドメイン）/og.png のフルURLに書き換えてください（Xなどは相対パスだと画像を読めません） -->
+<meta property="og:image" content="/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<!-- Vercel Web Analytics: Vercelのプロジェクト設定で Analytics を有効にすると計測が始まります（Cookieは使いません） -->
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)};</script>
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: a private card room — the game schedule board runs along the top, opponents sit across an oxblood felt, your hand rests on the near rail; the hand log hangs beside the table */
+:root{
+  --room:#120d0c; --rail:#231814; --rail-2:#35261f; --felt:#4a1921; --felt-2:#5d2029; --felt-3:#3a121a;
+  --brass:#d3ab57; --brass-dim:#8e7239; --on-brass:#1b130d;
+  --ink:#f2e9d9; --muted:#b9a892; --faint:#85735f;
+  --card:#fbf6ea; --card-down:#ecdfc3; --card-edge:#d6c8ad;
+  --spade:#1d1d24; --heart:#c4202f; --diamond:#2357c2; --club:#16824a;
+  --good:#7fd69b; --bad:#ec7b6f;
+  --f-display:'Big Shoulders Display','Arial Narrow','Helvetica Neue',sans-serif;
+  --f-body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif;
+  --f-num:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  color-scheme:dark;
+}
+body{background:var(--room);color:var(--ink);font-family:var(--f-body);font-size:14px}
+.app{max-width:1200px;margin:0 auto;padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:12px}
+button{font:inherit;color:inherit}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:24px;letter-spacing:.05em;color:var(--brass);text-transform:uppercase;line-height:1}
+.brand small{display:block;font-family:var(--f-body);font-weight:500;font-size:11px;letter-spacing:.08em;color:var(--faint);margin-top:3px;text-transform:none}
+.sched{flex:1 1 380px;min-width:0;display:grid;gap:4px}
+.rot{display:flex;flex-wrap:wrap;gap:4px}
+.rot b{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.07em;padding:3px 8px;border:1px solid var(--rail-2);border-radius:3px;color:var(--muted)}
+.rot b.cur{background:var(--brass);border-color:var(--brass);color:var(--on-brass)}
+.rot b.off{opacity:.3;text-decoration:line-through}
+.rot-note{font-size:11px;color:var(--faint);letter-spacing:.03em}
+.stats{display:flex;align-items:center;gap:14px;font-family:var(--f-num);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stats .up{color:var(--good)}.stats .down{color:var(--bad)}
+.iconbtn{background:var(--rail);border:1px solid var(--rail-2);border-radius:6px;padding:7px 12px;cursor:pointer;font-size:13px}
+.iconbtn:hover{border-color:var(--brass-dim)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px;align-items:start}
+@media(max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}}
+.table{background:radial-gradient(ellipse at 50% 42%,var(--felt-2),var(--felt) 72%);border:10px solid var(--rail);border-radius:30px;box-shadow:inset 0 0 0 1px var(--brass-dim),inset 0 0 70px rgba(0,0,0,.45),0 12px 30px rgba(0,0,0,.5);padding:14px;display:grid;gap:12px;min-width:0}
+.opps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.seat,.me{background:rgba(16,9,8,.55);border:1px solid rgba(211,171,87,.16);border-radius:10px;padding:8px;display:grid;gap:6px;min-width:0;transition:border-color .2s,box-shadow .2s}
+.seat.acting,.me.acting{border-color:var(--brass);box-shadow:0 0 0 2px rgba(211,171,87,.3)}
+.seat.folded{opacity:.42}
+.seat.win,.me.win{border-color:var(--good);box-shadow:0 0 0 2px rgba(127,214,155,.25)}
+.sh{display:flex;align-items:center;gap:6px;min-width:0}
+.nm{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sty{font-size:10px;color:var(--faint);letter-spacing:.05em;white-space:nowrap}
+.stk{margin-left:auto;font-family:var(--f-num);font-size:12px;font-variant-numeric:tabular-nums}
+.pos{font-family:var(--f-display);font-weight:800;font-size:10px;letter-spacing:.04em;min-width:20px;height:20px;padding:0 5px;border-radius:10px;display:inline-grid;place-items:center;background:var(--ink);color:var(--on-brass);flex:none}
+.pos.d{background:var(--brass)}
+.cards{display:flex;align-items:flex-end;min-height:calc(var(--cw)*1.4);--cw:30px}
+.seat .info{display:contents}
+.seat .sh{order:0}.seat .cbox{order:1;display:grid;gap:4px;min-width:0;container-type:inline-size}.seat .meta{order:2}.seat .dhm{order:3}
+.ghead,.lrow{display:grid;gap:7px;justify-items:center}
+.gname{background:none;border:0;padding:0;cursor:default;display:flex;flex-wrap:wrap;justify-content:center;gap:0 1em}
+.gname .more{display:none}
+.logbtn,.logclose,.netmini{display:none}
+button.brand{background:none;border:0;padding:0;cursor:pointer;text-align:left;color:var(--brass)}
+button.brand:hover small{color:var(--ink)}
+button.brand:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+.brand-go{display:none;font-size:.7em;margin-left:4px;color:var(--muted)}
+.toasts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:40;display:grid;justify-items:center;gap:6px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.toast{background:var(--rail);border:1px solid var(--brass);color:var(--ink);border-radius:10px;padding:8px 14px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.55);display:flex;gap:10px;align-items:center;max-width:min(440px,100%);animation:tin .25s ease-out}
+.toast b{color:var(--brass);font-family:var(--f-num);font-weight:500;white-space:nowrap}
+.toast .k{font-size:10.5px;font-weight:700;color:var(--on-brass);background:var(--brass);border-radius:3px;padding:1px 6px;white-space:nowrap}
+.toast.ach .k{background:var(--good)}
+.toast.rank{border-color:var(--good)}
+@keyframes tin{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.tline{font-size:12px;color:var(--brass);font-variant-numeric:tabular-nums}
+.tline b{color:var(--ink);font-weight:700}
+.seat.out{opacity:.35}
+.seat.out .cbox{display:none}
+.home{gap:12px}
+.rankcard{display:grid;gap:8px;padding:14px;border-radius:10px;background:linear-gradient(135deg,rgba(211,171,87,.16),rgba(0,0,0,.2));border:1px solid var(--brass-dim)}
+.rk-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.rk-name{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:.05em;color:var(--brass);line-height:1}
+.rk-pts{font-family:var(--f-num);font-size:14px;color:var(--ink)}
+.rk-streak{margin-left:auto;font-size:12px;color:var(--muted)}
+.rk-streak b{color:var(--ink);font-size:15px}
+.bar{height:8px;border-radius:4px;background:rgba(0,0,0,.35);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass);border-radius:4px}
+.bar.g i{background:var(--good)}
+.rk-next{font-size:12px;color:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mode{display:grid;gap:4px;text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--rail-2);background:rgba(0,0,0,.2);cursor:pointer;color:var(--ink)}
+.mode:hover{border-color:var(--brass)}
+.mode.pri{border-color:var(--brass);background:rgba(211,171,87,.12)}
+.mode b{font-size:16px}
+.mode span{font-size:12px;color:var(--muted);line-height:1.5}
+.mode em{font-style:normal;font-size:12px;color:var(--brass);font-weight:700}
+.mode:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.mlist{display:grid;gap:6px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:9px 12px;border-radius:8px;background:rgba(0,0,0,.2)}
+.mrow .t{font-size:13px}
+.mrow .r{font-family:var(--f-num);font-size:12px;color:var(--brass);white-space:nowrap}
+.mrow .bar{grid-column:1/-1;height:5px}
+.mrow.done .t{color:var(--muted);text-decoration:line-through}
+.mrow.done .r{color:var(--good)}
+.mrow.bonus{background:transparent;border:1px dashed var(--rail-2)}
+.tstats{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.tstats b{color:var(--ink);font-family:var(--f-num);font-weight:500;font-size:15px}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.ach{display:grid;gap:2px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.2);border:1px solid transparent}
+.ach b{font-size:13px}
+.ach span{font-size:11.5px;color:var(--muted);line-height:1.45}
+.ach i{font-style:normal;font-family:var(--f-num);font-size:11px;color:var(--brass)}
+.ach.got{border-color:rgba(127,214,155,.45)}
+.ach.got b::before{content:'✓ ';color:var(--good)}
+.ach:not(.got){opacity:.6}
+.tres{width:min(420px,100%);text-align:center;gap:14px}
+.tres .place{font-family:var(--f-display);font-weight:800;font-size:64px;line-height:1;color:var(--brass);letter-spacing:.04em}
+.tres .place.win{color:var(--good)}
+.tres .sub{font-size:13px;color:var(--muted)}
+.tres .earn{display:grid;gap:4px;font-size:13px;text-align:left;background:rgba(0,0,0,.2);border-radius:8px;padding:10px 12px}
+.tres .earn div{display:flex;justify-content:space-between;gap:10px}
+.tres .earn b{font-family:var(--f-num);font-weight:500;color:var(--brass)}
+.tres .acts{flex-direction:column}
+.tres .btn{width:100%}
+.hl-short{display:none}
+.morelink{background:none;border:0;padding:0;margin-left:4px;color:var(--brass);text-decoration:underline;cursor:pointer;font-size:inherit}
+.help{gap:12px}
+.htabs{align-self:start;width:max-content;max-width:100%;overflow-x:auto}
+.hbody{display:grid;gap:14px;line-height:1.7;font-size:13.5px;min-width:0}
+.panel .hbody h3{margin:0;font-size:15px;color:var(--brass);font-weight:700;letter-spacing:.02em}
+.panel .hbody h4{margin:0 0 2px;font-size:13px;color:var(--ink);font-weight:700}
+.hbody p{margin:0;max-width:62ch}
+.hbody ul,.hbody ol{margin:0;padding-left:1.3em;display:grid;gap:3px;max-width:62ch}
+.hbody .sec2{display:grid;gap:6px;padding:12px;background:rgba(0,0,0,.18);border-radius:8px}
+.hbody .lead{font-size:14.5px;color:var(--ink)}
+.hbody .muted{color:var(--muted);font-size:12.5px}
+.hbody kbd{font-family:var(--f-num);font-size:11px;border:1px solid var(--rail-2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--rail-2)}
+.mc{display:inline-flex;align-items:center;justify-content:center;min-width:1.9em;padding:0 3px;margin:1px 1px;border-radius:3px;background:var(--card);border:1px solid var(--card-edge);font-family:var(--f-display);font-weight:800;font-size:13px;line-height:1.45;vertical-align:1px}
+.mc.s0{color:var(--club)}.mc.s1{color:var(--diamond)}.mc.s2{color:var(--heart)}.mc.s3{color:var(--spade)}
+.rtab{width:100%;border-collapse:collapse;font-size:13px}
+.rtab td,.rtab th{padding:6px 8px;border-bottom:1px solid rgba(211,171,87,.1);text-align:left;vertical-align:top}
+.rtab th{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap}
+.rtab td:first-child{white-space:nowrap;font-family:var(--f-num);color:var(--faint);width:2em}
+.rtab td.nm2{white-space:nowrap;font-weight:700}
+.gpick{display:flex;flex-wrap:wrap;gap:5px}
+.gpick button{background:transparent;border:1px solid var(--rail-2);border-radius:4px;padding:4px 9px;cursor:pointer;font-family:var(--f-display);font-weight:600;letter-spacing:.06em;font-size:13px;color:var(--muted)}
+.gpick button[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--on-brass)}
+.gpick button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.gtitle{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.gtitle b{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:.04em;text-transform:uppercase;line-height:1}
+.gtitle span{color:var(--brass);font-size:14px}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:13px;margin:0}
+.facts dt{color:var(--muted);font-size:12px;white-space:nowrap;padding-top:1px}
+.facts dd{margin:0}
+.ex{display:grid;gap:4px}
+.ex div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ex .tag{font-size:11px;color:var(--muted);min-width:5.5em}
+.lvl{display:inline-grid;place-items:center;font-family:var(--f-body);font-weight:700;font-size:.62em;letter-spacing:0;background:var(--bad);color:var(--on-brass);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:.2em}
+.lvlpill{font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-left:6px;background:var(--rail-2);color:var(--muted)}
+.lvlpill.strong{background:var(--bad);color:var(--on-brass)}
+.lfilter{display:flex;gap:6px;flex-wrap:wrap}
+.lfilter button{background:transparent;border:1px solid var(--rail-2);border-radius:14px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
+.lfilter button[aria-pressed="true"]{border-color:var(--brass);color:var(--ink)}
+.netmini .up{color:var(--good)}.netmini .down{color:var(--bad)}
+.log h2{display:flex;align-items:center;justify-content:space-between}
+.cards.opp{--gap:4px;gap:var(--gap);--cw:clamp(22px,calc((100cqw - (var(--k) - 1)*var(--gap)) / var(--u)),58px)}
+.cards.opp .cd.tuck{margin-right:calc(var(--cw)*-.66 - var(--gap))}
+.cards.opp .cd{box-shadow:0 2px 5px rgba(0,0,0,.45)}
+.cards.opp .cd .r{font-size:calc(var(--cw)*.56)}
+.seat.folded .cards.opp{filter:saturate(.6)}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;color:var(--muted);min-height:16px;flex-wrap:wrap}
+.bet{font-family:var(--f-num);color:var(--brass);font-variant-numeric:tabular-nums}
+.bet::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--brass);box-shadow:inset 0 0 0 2px var(--on-brass);margin-right:4px;vertical-align:-1px}
+.dh{color:var(--muted);font-family:var(--f-num);font-size:10.5px}
+.ai{color:var(--bad);font-weight:700}
+.desc{font-size:11.5px;color:var(--ink)}
+.won{font-family:var(--f-num);color:var(--good);font-size:12px}
+.center{display:grid;gap:7px;justify-items:center;text-align:center;padding:4px 0;min-width:0}
+.code{font-family:var(--f-display);font-weight:800;font-size:clamp(36px,6.5vw,60px);line-height:.88;letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+.gname{font-size:13px;color:var(--brass);font-weight:500}
+.hint{font-size:12px;color:var(--muted);max-width:54ch;line-height:1.55}
+.ladder{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.ladder i{font-style:normal;font-family:var(--f-display);font-weight:600;font-size:11.5px;letter-spacing:.06em;padding:2px 8px;border-radius:2px;color:var(--faint);border:1px solid rgba(211,171,87,.16)}
+.ladder i.done{color:var(--muted)}
+.ladder i.now{background:var(--brass);border-color:var(--brass);color:var(--on-brass)}
+.pot{font-family:var(--f-num);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pot b{color:var(--ink);font-size:18px;font-weight:500}
+.stub{margin-left:10px;font-size:.85em;color:var(--faint)}
+.board{display:flex;gap:6px;--cw:clamp(38px,8vw,50px)}
+.slot{width:var(--cw);height:calc(var(--cw)*1.4);border:1.5px dashed rgba(211,171,87,.28);border-radius:calc(var(--cw)*.12)}
+.banner{background:rgba(16,9,8,.72);border:1px solid var(--brass-dim);border-radius:8px;padding:9px 14px;font-size:13px;display:grid;gap:3px;max-width:100%;line-height:1.5}
+.delta{font-family:var(--f-num);font-weight:500}
+.delta.up{color:var(--good)}.delta.down{color:var(--bad)}
+.me{justify-items:center;background:rgba(16,9,8,.42)}
+.me .sh{width:100%}
+.me .cards{--cw:clamp(40px,10.5vw,60px);gap:6px;min-height:calc(var(--cw)*1.4 + 14px);align-items:flex-end;padding-top:14px}
+.me .meta{justify-content:center}
+.me.folded .cards{opacity:.45}
+.acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;min-height:52px}
+.btn{font-weight:700;font-size:15px;padding:12px 18px;border-radius:8px;border:1px solid var(--brass-dim);background:var(--rail);cursor:pointer;min-width:112px;font-variant-numeric:tabular-nums}
+.btn:hover{border-color:var(--brass)}
+.btn.pri{background:var(--brass);border-color:var(--brass);color:var(--on-brass)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn:focus-visible,.iconbtn:focus-visible,.cd.pick:focus-visible,.chipbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sizer{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;width:100%}
+.sizer input{accent-color:var(--brass);width:min(300px,100%)}
+.chipbtn{background:transparent;border:1px solid var(--rail-2);border-radius:14px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
+.chipbtn:hover{border-color:var(--brass-dim);color:var(--ink)}
+.note{font-size:12px;color:var(--muted);text-align:center;line-height:1.5}
+.kbd{font-size:11px;color:var(--faint);text-align:center}
+.cd{width:var(--cw);height:calc(var(--cw)*1.4);flex:none;border-radius:calc(var(--cw)*.12);background:var(--card);border:1px solid var(--card-edge);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.35);font-family:var(--f-display);font-weight:800;user-select:none;transition:transform .15s}
+.cd .r{font-size:calc(var(--cw)*.52)}
+.cd .s{font-size:calc(var(--cw)*.4);margin-top:calc(var(--cw)*.05);font-family:'Segoe UI Symbol','Apple Symbols',system-ui,sans-serif}
+.cd.s0{color:var(--club)}.cd.s1{color:var(--diamond)}.cd.s2{color:var(--heart)}.cd.s3{color:var(--spade)}
+.cd.back{background:repeating-linear-gradient(45deg,var(--felt-2) 0 3px,var(--felt-3) 3px 6px);border:2px solid var(--brass-dim)}
+.cd.dn{background:var(--card-down)}
+.cd.dn::after{content:'';position:absolute;inset:2px;border:1px dashed rgba(110,80,40,.45);border-radius:inherit;pointer-events:none}
+.cd.ghost{visibility:hidden}
+.cd.pick{cursor:pointer}
+.cd.sel{transform:translateY(-12px);box-shadow:0 0 0 2px var(--brass),0 8px 12px rgba(0,0,0,.45)}
+.cd.sel::before{content:'交換';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);font-family:var(--f-body);font-size:10px;font-weight:700;color:var(--brass);white-space:nowrap}
+.cd.fresh{animation:pop .35s ease-out}
+@keyframes pop{from{transform:translateY(-8px);opacity:.2}to{transform:none;opacity:1}}
+.log{background:var(--rail);border:1px solid var(--rail-2);border-radius:12px;padding:12px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;height:min(640px,80vh);min-width:0}
+.log h2{margin:0;font-family:var(--f-display);font-weight:600;font-size:14px;letter-spacing:.1em;color:var(--brass);text-transform:uppercase}
+.log ol{list-style:none;margin:0;padding:0;overflow:auto;font-size:12px;display:grid;gap:3px;align-content:start;line-height:1.45}
+.log li.sep{color:var(--brass);font-family:var(--f-display);font-weight:600;letter-spacing:.06em;margin-top:8px;font-size:12.5px}
+.log li.win{color:var(--good)}
+.log li.sys{color:var(--faint)}
+@media(max-width:920px){.log{height:240px}}
+@media(max-width:640px){
+  .opps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .table{border-width:6px;border-radius:18px;padding:10px}
+  .btn{min-width:96px;padding:11px 12px;font-size:14px}
+}
+/* Phone: the whole table fits one screen — opponents become one-line rows, rules and log fold away */
+@media(max-width:640px){
+  html,body{height:100%}
+  .app{min-height:100%;box-sizing:border-box;padding-block:6px 6px;gap:6px;grid-template-rows:auto minmax(0,1fr)}
+  header.top{gap:5px 6px;flex-wrap:wrap}
+  .brand{font-size:14px;margin-right:auto}
+  .brand small,.rot-note,.stats{display:none}
+  .netmini{display:inline;font-family:var(--f-num);font-size:11.5px}
+  .sched{order:5;flex:1 1 100%}
+  .rot{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:3px}
+  .rot::-webkit-scrollbar{display:none}
+  .rot b{font-size:11px;padding:2px 6px;flex:none}
+  .iconbtn{padding:5px 8px;font-size:12px}
+  .logbtn{display:inline-block}
+  .brand-go{display:inline}
+  .modes{grid-template-columns:minmax(0,1fr)}
+  .rk-name{font-size:24px}
+  .tline{font-size:11px}
+  .hl-long{display:none}.hl-short{display:inline}
+  .helpbtn{padding:5px 9px;font-weight:700}
+  .facts{grid-template-columns:minmax(0,1fr)}
+  .facts dt{padding-top:6px}
+  .gtitle b{font-size:22px}
+  .layout{gap:0;align-items:stretch}
+  .table{border-width:4px;border-radius:16px;padding:6px;gap:5px;align-content:space-between}
+  .opps{grid-template-columns:minmax(0,1fr);gap:3px}
+  .seat{grid-template-columns:112px minmax(0,1fr);align-items:center;gap:4px 8px;padding:3px 8px;border-radius:8px}
+  .seat .info{display:grid;gap:1px;min-width:0}
+  .seat .sh{gap:5px}
+  .seat .nm{font-size:12px}
+  .seat .sty{display:none}
+  .seat .pos{min-width:18px;height:17px;font-size:9px}
+  .seat .stk{font-size:11px;color:var(--muted)}
+  .seat .meta{min-height:0;font-size:10.5px;line-height:1.3}
+  .seat .dh{font-size:9.5px}
+  .cards.opp{--gap:3px;--cw:clamp(18px,calc((100cqw - (var(--k) - 1)*var(--gap)) / var(--u)),32px)}
+  .seat .desc{font-size:10.5px;line-height:1.3}
+  .center{gap:4px;padding:0}
+  .ghead{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap}
+  .code{font-size:22px;line-height:1}
+  .gname{font-size:11.5px;cursor:pointer;gap:0 8px;align-items:baseline}
+  .gname .more{display:inline;font-size:10.5px;color:var(--muted);border:1px solid var(--rail-2);border-radius:10px;padding:0 7px}
+  .gname .struct,.hint{display:none}
+  .center.showhint .gname .struct{display:block;flex-basis:100%;font-size:11px;color:var(--muted)}
+  .center.showhint .hint{display:block;font-size:11px;line-height:1.45}
+  .lrow{display:flex;align-items:center;justify-content:center;gap:4px 10px;flex-wrap:wrap}
+  .center.done .ladder{display:none}
+  .ladder{gap:3px}
+  .ladder i{font-size:9.5px;padding:1px 4px;letter-spacing:.02em}
+  .pot{font-size:12px}.pot b{font-size:15px}
+  .board{--cw:clamp(30px,9.5vw,40px);gap:4px}
+  .banner{font-size:11.5px;padding:6px 10px;line-height:1.4;gap:1px}
+  .me{padding:5px 8px;gap:3px;container-type:inline-size}
+  .me .sh .nm{font-size:12px}
+  .me .cards{--cw:clamp(26px,calc((100cqw - (var(--n) - 1)*5px) / var(--n)),46px);gap:5px;padding-top:11px;min-height:calc(var(--cw)*1.4 + 11px)}
+  .me .meta{font-size:11px;min-height:0}
+  .cd.sel{transform:translateY(-9px)}
+  .kbd{display:none}
+  .acts{gap:6px;min-height:40px}
+  .acts .acts{width:100%;flex-wrap:nowrap}
+  .btn{min-width:0;flex:1 1 0;padding:10px 6px;font-size:14px;line-height:1.25}
+  .note{font-size:11px;line-height:1.4}
+  .sizer{gap:5px}
+  .log{position:fixed;left:0;right:0;bottom:0;z-index:15;height:min(55vh,420px);border-radius:14px 14px 0 0;border-width:1px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.6);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .log:not(.open){display:none}
+  .logclose{display:inline-block;font-family:var(--f-body);letter-spacing:0;text-transform:none;color:var(--ink)}
+}
+.sheet{position:fixed;inset:0;background:rgba(5,3,2,.6);display:grid;place-items:center;z-index:20;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet[hidden]{display:none}
+.panel{background:var(--rail);border:1px solid var(--brass-dim);border-radius:14px;padding:18px;width:min(460px,100%);max-height:86vh;overflow:auto;display:grid;gap:14px}
+.panel h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:.05em;color:var(--brass);text-transform:uppercase}
+.panel h3{margin:0 0 6px;font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:500}
+.glist{display:grid;gap:4px}
+.glist label{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:6px;background:rgba(0,0,0,.18);cursor:pointer}
+.glist input{accent-color:var(--brass)}
+.glist b{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;width:64px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select{background:var(--rail-2);color:var(--ink);border:1px solid var(--brass-dim);border-radius:6px;padding:6px 8px;font:inherit}
+.panel.wide{width:min(780px,100%)}
+.phead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.phead h2{margin-right:auto}
+.tabs{display:flex;border:1px solid var(--rail-2);border-radius:8px;overflow:hidden}
+.tabs button{background:transparent;border:0;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--brass);color:var(--on-brass);font-weight:700}
+.tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.sbody{display:grid;gap:16px;min-width:0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.tile{background:rgba(0,0,0,.2);border-radius:8px;padding:10px 12px;display:grid;gap:2px;min-width:0}
+.tile span{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.tile b{font-family:var(--f-num);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tile.lead b{font-size:26px}
+.up{color:var(--good)}.down{color:var(--bad)}
+.chart{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:180px auto;gap:4px 8px}
+.yax{position:relative;font-family:var(--f-num);font-size:11px;color:var(--faint);min-width:44px}
+.yax span{position:absolute;right:0;transform:translateY(-50%);white-space:nowrap}
+.plot{position:relative;background:rgba(0,0,0,.18);border-radius:6px;overflow:visible}
+.plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.plot .zl{stroke:var(--faint);stroke-dasharray:4 4;stroke-width:1;vector-effect:non-scaling-stroke}
+.plot .ln{fill:none;stroke:var(--brass);stroke-width:2;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.plot .ar{fill:var(--brass);opacity:.14}
+.plot .dot{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%);background:var(--good);box-shadow:0 0 0 3px var(--rail)}
+.plot .dot.down{background:var(--bad)}
+.xax{grid-column:2;display:flex;justify-content:space-between;font-family:var(--f-num);font-size:11px;color:var(--faint)}
+.chart-empty{background:rgba(0,0,0,.18);border-radius:6px;padding:28px 12px;text-align:center;color:var(--muted);font-size:13px}
+.sec h3{margin:0 0 8px;font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:500}
+.tscroll{overflow-x:auto}
+table.gt{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+.gt th{font-weight:500;font-size:11px;color:var(--muted);text-align:right;padding:6px 8px;border-bottom:1px solid var(--rail-2);white-space:nowrap}
+.gt td{padding:7px 8px;text-align:right;font-family:var(--f-num);font-variant-numeric:tabular-nums;border-bottom:1px solid rgba(211,171,87,.08);white-space:nowrap}
+.gt th:first-child,.gt td:first-child{text-align:left;font-family:var(--f-body)}
+.gt td:first-child b{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;display:inline-block;min-width:40px;color:var(--brass)}
+.gt tr.none td{color:var(--faint)}
+.gt tr.cur td:first-child::after{content:'いま';margin-left:6px;font-size:10px;color:var(--on-brass);background:var(--brass);padding:1px 5px;border-radius:3px}
+.verdict{display:flex;gap:8px;flex-wrap:wrap;font-size:13px}
+.verdict span{background:rgba(0,0,0,.2);border-radius:14px;padding:4px 12px}
+.slist{display:grid;gap:4px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:7px 10px;background:rgba(0,0,0,.16);border-radius:6px;font-size:13px}
+.srow .n{font-family:var(--f-num);font-variant-numeric:tabular-nums;text-align:right}
+.srow .live{font-size:10px;color:var(--on-brass);background:var(--brass);padding:1px 6px;border-radius:3px;margin-left:6px}
+.sfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--faint)}
+.linkbtn{background:transparent;border:1px solid var(--rail-2);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;color:var(--muted)}
+.linkbtn:hover{border-color:var(--bad);color:var(--bad)}
+.stats .netbtn{background:transparent;border:0;padding:0;cursor:pointer;font:inherit;color:inherit}
+.stats .netbtn:hover{text-decoration:underline}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <button class="brand" data-act="home" type="button" aria-label="ロビーを開く">MIX Game Poker<span class="lvl" id="lvlBadge" hidden>強</span><span class="brand-go" aria-hidden="true">▾</span><small>ロビー・ミッション・実績 ›</small></button>
+    <div class="sched"><div class="rot" id="rot"></div><div class="rot-note" id="rotNote"></div></div>
+    <div class="stats" id="stats"></div>
+    <button class="iconbtn helpbtn" data-act="help" type="button" aria-label="遊び方とルール"><span class="hl-long">遊び方・ルール</span><span class="hl-short">?</span></button>
+    <button class="iconbtn" data-act="stats" type="button">収支<span class="netmini" id="netMini"></span></button>
+    <button class="iconbtn logbtn" data-act="log" type="button">ログ</button>
+    <button class="iconbtn" data-act="settings" type="button">設定</button>
+  </header>
+  <div class="layout">
+    <section class="table" aria-label="テーブル">
+      <div class="opps" id="opps"></div>
+      <div class="center" id="center"></div>
+      <div class="me" id="me"></div>
+      <div id="acts"></div>
+    </section>
+    <aside class="log" aria-label="ハンド履歴"><h2>Hand Log<button class="iconbtn logclose" data-act="log" type="button">閉じる</button></h2><ol id="log"></ol></aside>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="panel" role="dialog" aria-labelledby="setTitle">
+    <h2 id="setTitle">Settings</h2>
+    <div class="row"><h3 style="margin:0">CPUの強さ</h3>
+      <select id="level"><option value="normal">ふつう</option><option value="strong">強い</option></select></div>
+    <div class="note" style="text-align:left;margin-top:-8px">強いCPUは、レイズしてきた相手やドローの交換枚数から手を読み、ブラフやスロープレイも混ぜてきます。強さを変えると、収支の記録は別のセッションとして分かれます。トーナメント中に変えた場合は、次のトーナメントから反映されます。</div>
+    <div><h3>ローテーションに入れるゲーム</h3><div class="glist" id="glist"></div></div>
+    <div class="row"><h3 style="margin:0">1ゲームのハンド数</h3>
+      <select id="handsPer"><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></div>
+    <div class="row"><h3 style="margin:0">CPUの速さ</h3>
+      <select id="speed"><option value="slow">ゆっくり</option><option value="normal">ふつう</option><option value="fast">速い</option></select></div>
+    <label class="row" style="cursor:pointer"><input type="checkbox" id="auto" style="accent-color:var(--brass)"> 結果のあと自動で次のハンドへ</label>
+    <div class="row"><button class="btn" data-act="reset" type="button" id="resetBtn">最初からやり直す</button><button class="btn pri" data-act="close" type="button">閉じる</button></div>
+    <div class="note" style="text-align:left">変更は次のハンドから反映されます。チップが尽きたら自動で2,000をリバイします。</div>
+    <div class="note" style="text-align:left">このゲームはお金や景品を賭けるものではありません。チップに金銭的な価値はありません。<a href="privacy.html" style="color:var(--brass)">プライバシーポリシー</a></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<div class="sheet" id="homeSheet" hidden>
+  <div class="panel wide home" role="dialog" aria-labelledby="homeTitle">
+    <div class="phead"><h2 id="homeTitle">Lobby</h2><button class="iconbtn" data-act="homeclose" type="button">閉じる</button></div>
+    <div id="homeBody" class="hbody"></div>
+  </div>
+</div>
+
+<div class="sheet" id="tourSheet" hidden>
+  <div class="panel tres" role="dialog" aria-labelledby="tourTitle">
+    <div id="tourBody"></div>
+  </div>
+</div>
+
+<div class="sheet" id="helpSheet" hidden>
+  <div class="panel wide help" role="dialog" aria-labelledby="helpTitle">
+    <div class="phead">
+      <h2 id="helpTitle">How to Play</h2>
+      <button class="iconbtn" data-act="hclose" type="button">閉じる</button>
+    </div>
+    <div class="tabs htabs" role="tablist">
+      <button type="button" role="tab" data-act="htab" data-tab="play" id="ht-play">遊び方</button>
+      <button type="button" role="tab" data-act="htab" data-tab="rules" id="ht-rules">共通ルール</button>
+      <button type="button" role="tab" data-act="htab" data-tab="games" id="ht-games">ゲーム別</button>
+    </div>
+    <div id="helpBody" class="hbody"></div>
+  </div>
+</div>
+
+<div class="sheet" id="statSheet" hidden>
+  <div class="panel wide" role="dialog" aria-labelledby="statTitle">
+    <div class="phead">
+      <h2 id="statTitle">Results</h2>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-act="stab" data-tab="session" id="tab-session">このセッション</button>
+        <button type="button" role="tab" data-act="stab" data-tab="all" id="tab-all">通算</button>
+      </div>
+      <button class="iconbtn" data-act="sclose" type="button">閉じる</button>
+    </div>
+    <div id="statBody"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const START=2000;
+const TOUR={stack:1500,perLevel:6,mults:[1,1.5,2,3,4,6,8,10,12,15,20,25,30,40,50,60,80,100],pts:[100,60,35,15,5]};
+const GAMES=[
+ {id:'LHE',code:"Hold'em",chip:'H',name:'リミット ホールデム',fam:'board',hole:2,hint:'手札2枚とボード5枚から最強の5枚を作るハイゲーム。'},
+ {id:'O8',code:'Omaha 8',chip:'O',name:'オマハ ハイロー',fam:'board',hole:4,hint:'手札から必ず2枚、ボードから3枚を使う。ハイと「8以下5枚」のローでポットを分ける。'},
+ {id:'RAZZ',code:'Razz',chip:'R',name:'ラズ',fam:'stud',hint:'7枚から一番低い5枚が勝ち。Aはロー、ストレートとフラッシュは無関係。最強はA-2-3-4-5。'},
+ {id:'STUD',code:'Stud',chip:'S',name:'セブンカード スタッド',fam:'stud',hint:'7枚から最強の5枚。3枚目の表向きカードが一番低い人がブリングイン。'},
+ {id:'STUD8',code:'Stud 8',chip:'E',name:'スタッド ハイロー',fam:'stud',hint:'7枚からハイと「8以下5枚」のローを作り、ポットを分ける。'},
+ {id:'27TD',code:'2-7 TD',chip:'2-7',name:'2-7 トリプルドロー',fam:'draw',size:5,hint:'5枚のロー。Aはハイ、ストレートとフラッシュは不利。最強は7-5-4-3-2。交換は3回。'},
+ {id:'A5TD',code:'A-5 TD',chip:'A-5',name:'A-5 トリプルドロー',fam:'draw',size:5,hint:'5枚のロー。Aはロー、ストレートとフラッシュは関係なし。最強はA-2-3-4-5（ホイール）。交換は3回。'},
+ {id:'BADUGI',code:'Badugi',chip:'BDG',name:'バドゥーギ',fam:'draw',size:4,hint:'4枚すべてスートもランクも違えばバドゥーギ。低いほど強く、Aはロー。交換は3回。'},
+ {id:'PLO',code:'PLO',chip:'PLO',name:'ポットリミット オマハ',fam:'board',hole:4,pot:true,hint:'手札4枚から必ず2枚使うハイゲーム。ベットはポットの額まで。'},
+ {id:'BADEUCY',code:'Badeucy',chip:'BDC',name:'バデューシー',fam:'draw',size:5,hint:'5枚で2-7ローとバドゥーギ（Aはハイ）を同時に競い、半分ずつ分ける。最強のカードは2。交換は3回。'},
+ {id:'BADACEY',code:'Badacey',chip:'BDA',name:'バデーシー',fam:'draw',size:5,hint:'5枚でA-5ローとバドゥーギ（どちらもAはロー）を同時に競い、半分ずつ分ける。最強のカードはA。交換は3回。'},
+];
+const SEATS=[
+ {name:'あなた',human:true},
+ {name:'タケシ',tag:'攻撃的',style:{aggr:1.28,loose:.12}},
+ {name:'ミナ',tag:'タイト',style:{aggr:.9,loose:.02}},
+ {name:'ケンジ',tag:'コーラー',style:{aggr:.98,loose:.24}},
+ {name:'サラ',tag:'バランス',style:{aggr:1.1,loose:.1}},
+];
+const SUITS=['♣︎','♦︎','♥︎','♠︎'];
+const SUITNAME=['クラブ','ダイヤ','ハート','スペード'];
+const RCH=r=>r===14||r===1?'A':r===13?'K':r===12?'Q':r===11?'J':r===10?'T':String(r);
+const RFACE=r=>r===10?'10':RCH(r);
+const fmt=n=>Math.round(n).toLocaleString('ja-JP');
+
+/* ---------- settings ---------- */
+const DEFAULT={enabled:GAMES.map(g=>g.id),handsPer:5,speed:'normal',auto:false,level:'normal'};
+const ALLIDS=GAMES.map(g=>g.id);
+let SET=(()=>{try{const s=JSON.parse(localStorage.getItem('ngm-settings')||'null');if(s&&Array.isArray(s.enabled)&&s.enabled.length){
+  const known=Array.isArray(s.known)?s.known:['LHE','O8','RAZZ','STUD','STUD8','27TD','BADUGI','PLO','BADEUCY'];
+  const en=s.enabled.filter(id=>ALLIDS.includes(id)).concat(ALLIDS.filter(id=>!known.includes(id)&&!s.enabled.includes(id)));
+  return {...DEFAULT,...s,enabled:en.length?en:ALLIDS.slice(),known:ALLIDS}}}catch(e){}return {...DEFAULT,known:ALLIDS}})();
+function saveSettings(){SET.known=ALLIDS;try{localStorage.setItem('ngm-settings',JSON.stringify(SET))}catch(e){}}
+const isOn=i=>SET.enabled.includes(GAMES[i].id);
+function nextEnabled(i){for(let k=1;k<=GAMES.length;k++){const j=(i+k)%GAMES.length;if(isOn(j))return j}return i}
+
+/* ---------- cards & evaluation ---------- */
+function fullDeck(){const d=[];for(let s=0;s<4;s++)for(let r=2;r<=14;r++)d.push({r,s});return d}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a}
+const COMBO={};
+function combos(n,k){const key=n*10+k;if(COMBO[key])return COMBO[key];const out=[],cur=[];(function rec(st){if(cur.length===k){out.push(cur.slice());return}for(let i=st;i<n;i++){cur.push(i);rec(i+1);cur.pop()}})(0);return COMBO[key]=out}
+function pack(cat,arr){let v=cat;for(let i=0;i<5;i++)v=v*16+(arr[i]||0);return v}
+const P5=1048576;
+const CNT=new Int8Array(16);
+function evalHigh5(cs,wheel){
+  let flush=true;const s0=cs[0].s;
+  for(let i=0;i<5;i++){CNT[cs[i].r]++;if(cs[i].s!==s0)flush=false}
+  let q=0,t=0,p1=0,p2=0;const sg=[];
+  for(let r=14;r>=2;r--){const c=CNT[r];if(!c)continue;CNT[r]=0;if(c===4)q=r;else if(c===3)t=r;else if(c===2){if(p1)p2=r;else p1=r}else sg.push(r)}
+  if(sg.length===5){
+    let sh=0;if(sg[0]-sg[4]===4)sh=sg[0];else if(wheel&&sg[0]===14&&sg[1]===5)sh=5;
+    if(sh&&flush)return pack(8,[sh]);if(flush)return pack(5,sg);if(sh)return pack(4,[sh]);return pack(0,sg);
+  }
+  if(q)return pack(7,[q,sg[0]]);if(t&&p1)return pack(6,[t,p1]);if(t)return pack(3,[t,sg[0],sg[1]]);if(p2)return pack(2,[p1,p2,sg[0]]);return pack(1,[p1,sg[0],sg[1],sg[2]]);
+}
+function groupScore(cs,aceLow){
+  for(const c of cs){CNT[aceLow&&c.r===14?1:c.r]++}
+  let q=0,t=0,p1=0,p2=0;const sg=[];
+  for(let r=14;r>=1;r--){const c=CNT[r];if(!c)continue;CNT[r]=0;if(c===4)q=r;else if(c===3)t=r;else if(c===2){if(p1)p2=r;else p1=r}else sg.push(r)}
+  if(q)return pack(7,[q,sg[0]]);if(t&&p1)return pack(6,[t,p1]);if(t)return pack(3,[t,...sg]);if(p2)return pack(2,[p1,p2,...sg]);if(p1)return pack(1,[p1,...sg]);return pack(0,sg);
+}
+const hi=cs=>evalHigh5(cs,true), hiNW=cs=>evalHigh5(cs,false), lowA5=cs=>groupScore(cs,true);
+function low8(cs){let m=0;const rs=[];for(const c of cs){const r=c.r===14?1:c.r;if(r>8||(m>>r&1))return null;m|=1<<r;rs.push(r)}rs.sort((a,b)=>b-a);return pack(0,rs)}
+const TMP=[0,0,0,0,0];
+function best5(cards,fn,min){const n=cards.length;if(n<5)return null;let best=null;for(const c of combos(n,5)){for(let k=0;k<5;k++)TMP[k]=cards[c[k]];const v=fn(TMP);if(v===null)continue;if(best===null||(min?v<best:v>best))best=v}return best}
+function omahaBest(hole,board,fn,min){if(board.length<3)return null;let best=null;const B=combos(board.length,3);for(const h of combos(hole.length,2))for(const b of B){TMP[0]=hole[h[0]];TMP[1]=hole[h[1]];TMP[2]=board[b[0]];TMP[3]=board[b[1]];TMP[4]=board[b[2]];const v=fn(TMP);if(v===null)continue;if(best===null||(min?v<best:v>best))best=v}return best}
+const MASKS={};
+function masksFor(n){if(MASKS[n])return MASKS[n];const m=[];for(let x=1;x<(1<<n);x++){let c=0;for(let i=0;i<n;i++)if(x>>i&1)c++;if(c<=4)m.push([x,c])}m.sort((a,b)=>b[1]-a[1]);return MASKS[n]=m}
+function badugi(cs,aceHigh){
+  const n=cs.length;let best=Infinity,bm=0;
+  for(const [m,size] of masksFor(n)){
+    if((4-size)*65536>best)break;
+    let sm=0,rm=0,ok=true;const rs=[];
+    for(let i=0;i<n;i++)if(m>>i&1){const c=cs[i];const r=aceHigh?c.r:(c.r===14?1:c.r);if((sm>>c.s&1)||(rm>>r&1)){ok=false;break}sm|=1<<c.s;rm|=1<<r;rs.push(r)}
+    if(!ok)continue;rs.sort((a,b)=>b-a);let v=0;for(const r of rs)v=v*16+r;v+=(4-size)*65536;
+    if(v<best){best=v;bm=m}
+  }
+  return {v:best,mask:bm};
+}
+function evaluate(gid,cards,board){
+  switch(gid){
+    case 'LHE':return [{t:'high',v:best5(cards.concat(board),hi,false)}];
+    case 'PLO':return [{t:'high',v:omahaBest(cards,board,hi,false)}];
+    case 'O8':{const l=omahaBest(cards,board,low8,true);return [{t:'high',v:omahaBest(cards,board,hi,false)},{t:'low8',v:l===null?null:-l}]}
+    case 'STUD':return [{t:'high',v:best5(cards,hi,false)}];
+    case 'STUD8':{const l=best5(cards,low8,true);return [{t:'high',v:best5(cards,hi,false)},{t:'low8',v:l===null?null:-l}]}
+    case 'RAZZ':{const l=best5(cards,lowA5,true);return [{t:'razz',v:l===null?null:-l}]}
+    case '27TD':return [{t:'27',v:-hiNW(cards)}];
+    case 'BADUGI':return [{t:'bdg',v:-badugi(cards,false).v}];
+    case 'BADEUCY':return [{t:'bdc',v:-badugi(cards,true).v},{t:'27',v:-hiNW(cards)}];
+    case 'A5TD':return [{t:'a5',v:-lowA5(cards)}];
+    case 'BADACEY':return [{t:'bdg',v:-badugi(cards,false).v},{t:'a5',v:-lowA5(cards)}];
+  }
+}
+const CATN=['ハイカード','ワンペア','ツーペア','スリーカード','ストレート','フラッシュ','フルハウス','フォーカード','ストレートフラッシュ'];
+function unpack(v,n){const a=[];for(let i=0;i<n;i++){a.unshift(v%16);v=Math.floor(v/16)}return {rest:v,a}}
+function describe(t,v){
+  if(v===null||v===undefined)return t==='low8'?'ローなし':'';
+  if(t==='high'){const {rest:c,a}=unpack(v,5);const R=a.map(RCH);
+    const k=(from,n)=>R.slice(from,from+n).filter((x,i)=>a[from+i]).join('-');
+    return [`${R[0]}ハイ（${k(0,5)}）`,`ワンペア（${R[0]}）・${k(1,3)}`,`ツーペア（${R[0]}と${R[1]}）・${k(2,1)}`,`スリーカード（${R[0]}）・${k(1,2)}`,`ストレート（${R[0]}ハイ）`,`フラッシュ（${k(0,5)}）`,`フルハウス（${R[0]}と${R[1]}）`,`フォーカード（${R[0]}）・${k(1,1)}`,a[0]===14?'ロイヤルフラッシュ':`ストレートフラッシュ（${R[0]}ハイ）`][c]}
+  if(t==='low8'){return unpack(-v,5).a.map(RCH).join('-')+' ロー'}
+  if(t==='razz'||t==='a5'){const {rest:c,a}=unpack(-v,5);return c===0?a.map(RCH).join('-')+' ロー':`${CATN[c]}（${RCH(a[0])}）`}
+  if(t==='27'){const {rest:c,a}=unpack(-v,5);return c===0?a.map(RCH).join('-'):c===4||c===5||c===8?`${CATN[c]}（${RCH(a[0])}ハイ）`:`${CATN[c]}（${RCH(a[0])}）`}
+  const x=-v,size=4-Math.floor(x/65536);return (size===4?'バドゥーギ ':size+'枚 ')+unpack(x%65536,size).a.map(RCH).join('-');
+}
+function halfLabel(gid,h){if(gid==='O8'||gid==='STUD8')return h===0?'ハイ':'ロー';if(gid==='BADEUCY')return h===0?'バドゥーギ':'2-7';if(gid==='BADACEY')return h===0?'バドゥーギ':'A-5';return ''}
+function shareOf(ev,me){
+  const H=ev[0].length,q=[];
+  for(let h=0;h<H;h++){let b=null;for(const e of ev){const v=e[h].v;if(v!==null&&(b===null||v>b))b=v}if(b!==null)q.push([h,b])}
+  let s=0;for(const [h,b] of q){if(ev[me][h].v===b){let w=0;for(const e of ev)if(e[h].v===b)w++;s+=1/q.length/w}}
+  return s;
+}
+
+/* ---------- draw policies (CPU + simulation) ---------- */
+function lowKeep(hand,maxR){const idx=hand.map((c,i)=>i).sort((a,b)=>hand[a].r-hand[b].r);const keep=[],seen=new Set();for(const i of idx){const r=hand[i].r;if(r<=maxR&&!seen.has(r)){seen.add(r);keep.push(i)}}return keep}
+const rest=(n,keep)=>{const o=[];for(let i=0;i<n;i++)if(!keep.includes(i))o.push(i);return o};
+function maxR(hand){let m=0;for(const c of hand)if(c.r>m)m=c.r;return m}
+function pol27(hand,left){
+  const cat=Math.floor(hiNW(hand)/P5),thr=left>=3?9:left===2?10:11;
+  if(cat===0&&maxR(hand)<=thr)return [];
+  let keep=lowKeep(hand,8);if(keep.length===5)keep=keep.slice(0,4);
+  return rest(5,keep);
+}
+function polBdg(hand,left){
+  const lr=c=>c.r===14?1:c.r;const {mask}=badugi(hand,false);
+  let keep=[];for(let i=0;i<4;i++)if(mask>>i&1)keep.push(i);
+  keep.sort((a,b)=>lr(hand[a])-lr(hand[b]));
+  const top=keep.length?lr(hand[keep[keep.length-1]]):0;
+  if(keep.length===4){const thr=left>=3?10:left===2?12:13;if(top<=thr)return [];keep.pop()}
+  else if(keep.length===3){if(top>=11&&left>=2)keep.pop()}
+  else keep=keep.filter(i=>lr(hand[i])<=9);
+  return rest(4,keep);
+}
+const lr=c=>c.r===14?1:c.r;
+function lowKeepA(hand,maxR){const idx=hand.map((c,i)=>i).sort((a,b)=>lr(hand[a])-lr(hand[b]));const keep=[],seen=new Set();for(const i of idx){const r=lr(hand[i]);if(r<=maxR&&!seen.has(r)){seen.add(r);keep.push(i)}}return keep}
+const maxLow=hand=>Math.max(...hand.map(lr));
+function polA5(hand,left){
+  const cat=Math.floor(lowA5(hand)/P5),thr=left>=3?8:left===2?9:10;
+  if(cat===0&&maxLow(hand)<=thr)return [];
+  let keep=lowKeepA(hand,7);if(keep.length===5)keep=keep.slice(0,4);
+  if(!keep.length)keep=lowKeepA(hand,8).slice(0,3);
+  return rest(5,keep);
+}
+function polBda(hand,left){
+  const cat=Math.floor(lowA5(hand)/P5),thr=left>=3?7:left===2?8:9;
+  const bsize=4-Math.floor(badugi(hand,false).v/65536);
+  if(cat===0&&maxLow(hand)<=thr&&bsize>=3)return [];
+  let keep=lowKeepA(hand,6);if(keep.length===5)keep=keep.slice(0,4);
+  if(!keep.length)keep=lowKeepA(hand,8).slice(0,2);
+  return rest(5,keep);
+}
+function polBdc(hand,left){
+  const cat=Math.floor(hiNW(hand)/P5),thr=left>=3?8:left===2?9:10;
+  const bsize=4-Math.floor(badugi(hand,true).v/65536);
+  if(cat===0&&maxR(hand)<=thr&&bsize>=3)return [];
+  let keep=lowKeep(hand,7);if(keep.length===5)keep=keep.slice(0,4);
+  if(!keep.length)keep=lowKeep(hand,9).slice(0,2);
+  return rest(5,keep);
+}
+function policy(gid,hand,left){return gid==='A5TD'?polA5(hand,left):gid==='BADACEY'?polBda(hand,left):gid==='27TD'?pol27(hand,left):gid==='BADUGI'?polBdg(hand,left):polBdc(hand,left)}
+
+/* ---------- session state ---------- */
+let TOKEN=0;
+class Abort extends Error{}
+function newSession(mode){
+  const st=mode==='tour'?TOUR.stack:START;
+  return {mode:mode||'free',mult:1,blindLv:-1,tourHands:0,players:SEATS.map((s,i)=>({id:i,name:s.name,human:!!s.human,tag:s.tag||'',style:s.style,stack:st,buyin:st,out:false,place:0,cards:[],folded:false,allIn:false,streetBet:0,total:0,acted:false,vol:false,lastAct:'',draws:[],showDesc:'',won:0})),
+    button:Math.floor(Math.random()*5),gameIdx:isOn(0)?0:nextEnabled(0),handsInGame:0,handNo:0,g:null,deck:[],muck:[],board:[],street:0,
+    currentBet:0,lastRaise:20,raises:0,unit:20,drawsDone:0,drawNo:0,phase:'bet',acting:-1,pending:null,result:null,reveal:false,over:false,log:[],sel:new Set(),bringIn:-1};
+}
+let S=newSession();
+const wait=ms=>{const t=TOKEN;return new Promise((res,rej)=>setTimeout(()=>t===TOKEN?res():rej(new Abort()),ms))};
+function ask(type,data){const t=TOKEN;return new Promise((res,rej)=>{const pend={type,data,resolve:v=>{if(S.pending===pend)S.pending=null;if(t!==TOKEN)rej(new Abort());else res(v)}};S.pending=pend;render()})}
+function log(text,cls=''){S.log.push({text,cls});if(S.log.length>160)S.log.splice(0,S.log.length-160)}
+const totalPot=()=>S.players.reduce((a,p)=>a+p.total,0);
+const live=()=>S.players.filter(p=>!p.folded);
+function speedBase(){return {slow:1050,normal:650,fast:280}[SET.speed]||650}
+function pace(){const me=S.players[0];return (me.folded||me.allIn)?.35:1}
+function put(p,amt){amt=Math.max(0,Math.min(amt,p.stack));p.stack-=amt;p.streetBet+=amt;p.total+=amt;if(p.stack===0&&amt>0)p.allIn=true;return amt}
+/* Dealing follows casino draw procedure (e.g. N.J.A.C. 19:47-14.12C for Badugi): a card is burned before each draw and each new street;
+   if the stub runs out during a player's draw, they get the rest of the stub, then all other discards (never their own from this draw,
+   never burn cards) are shuffled into a new stub. Discards from earlier draws can therefore come back — that is normal in live games too. */
+function reshuffle(who){
+  const n=S.muck.length;S.deck=shuffle(S.muck.concat(S.deck));S.muck=[];
+  log(who?`山札が足りなくなったため、${who.name}の今回の捨て札を除く捨て札${n}枚をシャッフルして新しい山札にしました`:`山札が空のため、捨て札${n}枚をシャッフルして新しい山札にしました`,'sys');
+}
+function dealCard(who){if(!S.deck.length)reshuffle(who);return S.deck.pop()}
+function burn(){if(!S.deck.length)reshuffle(null);S.burned.push(S.deck.pop())}
+function resetStreet(){S.currentBet=0;S.raises=0;S.lastRaise=bbAmt();S.openPair=false;S.doubled=false;S.players.forEach(p=>{p.streetBet=0;p.acted=false;p.capped=false})}
+/* Betting structure per game, as used in mixed-game rooms:
+   limit games: 20/40 fixed limit, bet + 3 raises cap (uncapped heads-up), all-in < half a bet does not reopen raising
+   stud games: ante 3, bring-in 5 (bring-in may complete to 20), Stud high only: open pair on 4th street allows the 40 bet
+   draw games: blinds 10/20, small bet before and after the 1st draw, big bet after the 2nd and 3rd draws
+   PLO: pot limit, blinds 10/20, min raise = last raise, short all-in does not reopen */
+const stake=()=>S.mult||1;
+const sbAmt=()=>Math.round(10*stake()),bbAmt=()=>Math.round(20*stake()),smallBet=()=>Math.round(20*stake()),bigBet=()=>Math.round(40*stake()),anteAmt=()=>Math.round(3*stake()),bringAmt=()=>Math.round(5*stake());
+function limitUnit(){return S.doubled?bigBet():S.unit}
+function maxBets(){return live().length<=2?Infinity:4}
+const openPairOption=()=>S.g.id==='STUD'&&S.street===1&&S.openPair&&!S.doubled;
+
+/* ---------- betting ---------- */
+function legal(p){
+  const g=S.g,raw=S.currentBet-p.streetBet,toCall=Math.min(Math.max(raw,0),p.stack);
+  const others=S.players.some(o=>o!==p&&!o.folded&&!o.allIn);
+  const L={toCall,canCheck:raw<=0,isPot:!!g.pot,canRaise:false,pot:totalPot()};
+  const cap=p.streetBet+p.stack;
+  if(p.stack>raw&&others&&!p.capped){
+    if(g.pot){const minTo=S.currentBet===0?bbAmt():S.currentBet+Math.max(S.lastRaise,bbAmt());const maxTo=S.currentBet+totalPot()+Math.max(raw,0);
+      L.minTo=Math.min(minTo,cap);L.maxTo=Math.min(Math.max(maxTo,minTo),cap);L.canRaise=true}
+    else if(S.raises<maxBets()){
+      const u=limitUnit(),to=S.currentBet===0?u:(S.currentBet<u?u:S.currentBet+u);
+      L.raiseTo=Math.min(to,cap);L.canRaise=true;
+      if(openPairOption()){const to2=Math.min(S.currentBet+bigBet(),cap);if(to2>L.raiseTo)L.raiseTo2=to2}
+      const mb=maxBets();L.capLeft=mb===Infinity?null:mb-S.raises;
+    }
+  }
+  L.word=S.currentBet===0?'ベット':(g.fam==='stud'&&S.currentBet<S.unit?'コンプリート':'レイズ');
+  return L;
+}
+function apply(p,a){
+  const word=S.currentBet===0?'ベット':(S.g.fam==='stud'&&S.currentBet<S.unit?'コンプリート':'レイズ');
+  if(a.type==='call'&&S.currentBet<=p.streetBet)a={type:'check'};
+  if(a.type==='fold'){p.folded=true;p.lastAct='フォールド';if(S.g.fam==='draw')S.muck.push(...p.cards)}
+  else if(a.type==='check'){p.lastAct='チェック'}
+  else if(a.type==='call'){const amt=put(p,S.currentBet-p.streetBet);p.vol=true;p.lastAct=p.allIn?`オールイン ${amt}`:`コール ${amt}`}
+  else if(a.type==='raise'){
+    const before=S.currentBet,u=limitUnit(),fullTo=before===0?u:(before<u?u:before+u);
+    put(p,a.to-p.streetBet);p.vol=true;
+    if(p.streetBet>before){
+      const inc=p.streetBet-before;
+      const full=S.g.pot?inc>=Math.max(S.lastRaise,bbAmt()):(p.streetBet>=fullTo||inc*2>=u);
+      if(openPairOption()&&inc>=bigBet())S.doubled=true;
+      S.currentBet=p.streetBet;
+      if(full){if(S.g.pot)S.lastRaise=inc;S.raises++;S.players.forEach(o=>{o.capped=false;if(o!==p)o.acted=false})}
+      else S.players.forEach(o=>{if(o!==p&&o.acted){o.acted=false;o.capped=true}});
+    }
+    p.lastAct=(p.allIn?'オールイン ':word+' ')+p.streetBet}
+  if(S.street===0&&(a.type==='call'||a.type==='raise'))p.vpip=true;
+  if(a.type!=='check'){p.tAct=(p.tAct||0)+1;if(a.type==='fold')p.tFold=(p.tFold||0)+1;if(a.type==='raise'){p.tRaise=(p.tRaise||0)+1;p.aggN=(p.aggN||0)+1}}
+  p.acted=true;
+  log(`${p.name}：${p.lastAct}`);
+}
+function nextNeeding(cur){for(let k=0;k<5;k++){const i=(cur+k)%5,p=S.players[i];if(!p.folded&&!p.allIn&&(!p.acted||p.streetBet<S.currentBet))return i}return -1}
+async function bettingRound(start){
+  if(live().length<2)return;
+  const can=S.players.filter(p=>!p.folded&&!p.allIn);
+  if(!can.length)return;
+  if(can.length===1&&can[0].streetBet>=S.currentBet)return;
+  let cur=start;
+  while(true){
+    const i=nextNeeding(cur);if(i<0)break;
+    const p=S.players[i];S.acting=i;render();
+    let a;
+    if(p.human)a=await ask('bet',legal(p));
+    else{await wait(speedBase()*pace());a=cpuDecide(p)}
+    apply(p,a);S.acting=-1;render();
+    if(live().length<2)break;
+    cur=(i+1)%5;
+  }
+}
+function refundUncalled(){
+  const s=S.players.slice().sort((a,b)=>b.streetBet-a.streetBet);
+  if(s[0].streetBet>s[1].streetBet){const d=s[0].streetBet-s[1].streetBet;s[0].stack+=d;s[0].streetBet-=d;s[0].total-=d;if(s[0].stack>0)s[0].allIn=false}
+}
+async function round(start){
+  S.unit=S.street>=2?bigBet():smallBet();S.phase='bet';
+  await bettingRound(start);
+  refundUncalled();
+  const lv=live();
+  if(lv.length===1){awardUncontested(lv[0]);return true}
+  return false;
+}
+
+/* ---------- CPU ---------- */
+function estimate(p,iters){
+  const g=S.g,gid=g.id,others=S.players.filter(o=>o!==p&&!o.folded);
+  let opps=others;
+  if(S.street===0){const eng=others.filter(o=>o.vol||o.allIn),idle=others.filter(o=>!(o.vol||o.allIn));
+    const k=Math.max(1,eng.length+Math.round(idle.length*.35));opps=eng.concat(idle).slice(0,Math.min(k,others.length))}
+  if(!opps.length)return {eq:1,n:1};
+  const key=c=>c.r*4+c.s,known=new Set();
+  p.cards.forEach(c=>known.add(key(c)));S.board.forEach(c=>known.add(key(c)));
+  if(g.fam==='stud')S.players.forEach(o=>{if(o!==p)o.cards.forEach(c=>{if(c.up)known.add(key(c))})});
+  const pool=fullDeck().filter(c=>!known.has(key(c))),N=pool.length;let pi=0;
+  const take=()=>{if(pi>=N)return null;const j=pi+Math.floor(Math.random()*(N-pi));const t=pool[pi];pool[pi]=pool[j];pool[j]=t;return pool[pi++]};
+  const left=g.fam==='draw'?3-S.drawsDone:0;let total=0;
+  for(let it=0;it<iters;it++){
+    pi=0;let board=S.board;const hands=[];
+    if(g.fam==='board'){board=S.board.slice();while(board.length<5)board.push(take());hands.push(p.cards);
+      for(const o of opps){const h=[];for(let k=0;k<g.hole;k++)h.push(take());hands.push(h)}}
+    else if(g.fam==='stud'){const me=p.cards.slice();while(me.length<7)me.push(take());hands.push(me);
+      for(const o of opps){const h=o.cards.filter(c=>c.up);while(h.length<7)h.push(take());hands.push(h)}}
+    else{hands.push(p.cards.slice());for(const o of opps){const h=[];for(let k=0;k<g.size;k++)h.push(take());hands.push(h)}
+      for(let d=left;d>=1;d--)for(const h of hands){for(const i of policy(gid,h,d)){const c=take();if(c)h[i]=c}}}
+    total+=shareOf(hands.map(h=>evaluate(gid,h,board)),0);
+  }
+  return {eq:total/iters,n:opps.length+1};
+}
+const ITERS={LHE:220,PLO:110,O8:110,STUD:150,STUD8:130,RAZZ:150,'27TD':110,BADUGI:130,BADEUCY:100,A5TD:120,BADACEY:100};
+/* ---------- strong CPU ----------
+   1) reads ranges: each bet/raise an opponent made this hand counts them as up to 3 hands ("beats you as often as N random hands"),
+      scaled down for players who raise a lot over the session (bluffers get called lighter)
+   2) in draw games, samples opponents' hands that are consistent with how many cards they last drew (pat = made hand)
+   3) picks discards by simulating every possible discard instead of a fixed rule
+   4) bets for value and protection, semi-bluffs with draws, bluffs when checked to, slow-plays monsters, folds without random crying calls */
+const isStrong=p=>(p.lv||S.level)==='strong';
+function oppWeight(o){const rate=((o.tRaise||0)+2)/((o.tAct||0)+10);const w=Math.max(.5,Math.min(1.5,.2/rate));return 1+w*Math.min(2,.75*(o.aggN||0))}
+function estimateStrong(p,iters){
+  const g=S.g,gid=g.id,others=S.players.filter(o=>o!==p&&!o.folded);
+  let opps=others;
+  if(S.street===0){const eng=others.filter(o=>o.vol||o.allIn),idle=others.filter(o=>!(o.vol||o.allIn));
+    const k=Math.max(1,eng.length+Math.round(idle.length*.3));opps=eng.concat(idle).slice(0,Math.min(k,others.length))}
+  if(!opps.length)return {eq:1,n:1};
+  const key=c=>c.r*4+c.s,known=new Set();
+  p.cards.forEach(c=>known.add(key(c)));S.board.forEach(c=>known.add(key(c)));
+  if(g.fam==='stud')S.players.forEach(o=>{if(o!==p)o.cards.forEach(c=>{if(c.up)known.add(key(c))})});
+  const pool=fullDeck().filter(c=>!known.has(key(c))),N=pool.length;let pi=0;
+  const take=()=>{if(pi>=N)return null;const j=pi+Math.floor(Math.random()*(N-pi));const t=pool[pi];pool[pi]=pool[j];pool[j]=t;return pool[pi++]};
+  const peek=sz=>{const idx=new Set();while(idx.size<sz&&idx.size<N-pi)idx.add(pi+Math.floor(Math.random()*(N-pi)));return [...idx].map(i=>pool[i])};
+  const commit=cs=>{for(const c of cs){const j=pool.indexOf(c,pi);const t=pool[pi];pool[pi]=pool[j];pool[j]=t;pi++}};
+  const left=g.fam==='draw'?3-S.drawsDone:0;
+  const drawHand=o=>{
+    const dn=o.draws.length;
+    if(!dn){const h=peek(g.size);commit(h);return h}
+    const k=o.draws[dn-1],lft=4-dn;let best=null,bd=99;
+    for(let t=0;t<20;t++){const h=peek(g.size),d=Math.abs(policy(gid,h,lft).length-k);if(d<bd){bd=d;best=h}if(!d)break}
+    commit(best);const h=best.slice();for(const i of policy(gid,h,lft).slice(0,k)){const c=take();if(c)h[i]=c}
+    return h;
+  };
+  let total=0;
+  for(let it=0;it<iters;it++){
+    pi=0;let board=S.board;const hands=[];
+    if(g.fam==='board'){board=S.board.slice();while(board.length<5)board.push(take());hands.push(p.cards)}
+    else if(g.fam==='stud'){const me=p.cards.slice();while(me.length<7)me.push(take());hands.push(me)}
+    else hands.push(p.cards.slice());
+    for(const o of opps){
+      const m=oppWeight(o),cnt=Math.floor(m)+(Math.random()<m%1?1:0);
+      for(let c=0;c<cnt;c++){
+        if(g.fam==='board'){const h=[];for(let k=0;k<g.hole;k++)h.push(take());if(h.includes(null))break;hands.push(h)}
+        else if(g.fam==='stud'){const h=o.cards.filter(x=>x.up);while(h.length<7)h.push(take());if(h.includes(null))break;hands.push(h)}
+        else{if(N-pi<g.size+4)break;hands.push(drawHand(o))}
+      }
+    }
+    if(g.fam==='draw')for(let d=left;d>=1;d--)for(const h of hands){for(const i of policy(gid,h,d)){const c=take();if(c)h[i]=c}}
+    total+=shareOf(hands.map(h=>evaluate(gid,h,board)),0);
+  }
+  return {eq:total/iters,n:opps.length+1};
+}
+function chooseDiscardStrong(p,d){
+  const gid=S.g.id,size=p.cards.length,left=4-d;
+  const key=c=>c.r*4+c.s,mine=new Set(p.cards.map(key));
+  const pool=fullDeck().filter(c=>!mine.has(key(c))),N=pool.length;
+  const opps=S.players.filter(o=>o!==p&&!o.folded).slice(0,2),nO=Math.max(1,opps.length);
+  const M=1<<size,score=new Float64Array(M),iters=size===4?70:44;
+  for(let it=0;it<iters;it++){
+    for(let i=0;i<N;i++){const j=i+Math.floor(Math.random()*(N-i));const t=pool[i];pool[i]=pool[j];pool[j]=t}
+    // opponents are fixed across discard choices (common random numbers), hero draws come from pool[0..15)
+    let q=15;const oev=[];
+    for(let k=0;k<nO;k++){const h=pool.slice(q,q+size);q+=size;
+      for(let dd=left;dd>=1;dd--)for(const i of policy(gid,h,dd)){if(q<N)h[i]=pool[q++]}
+      oev.push(evaluate(gid,h,[]))}
+    for(let m=0;m<M;m++){
+      const h=p.cards.slice();let r=0;
+      for(let i=0;i<size;i++)if(m>>i&1)h[i]=pool[r++];
+      for(let dd=left-1;dd>=1;dd--)for(const i of policy(gid,h,dd)){if(r<15)h[i]=pool[r++]}
+      score[m]+=shareOf([evaluate(gid,h,[]),...oev],0);
+    }
+  }
+  let bm=0;for(let m=1;m<M;m++)if(score[m]>score[bm]+1e-9)bm=m;
+  const out=[];for(let i=0;i<size;i++)if(bm>>i&1)out.push(i);return out;
+}
+function streetsLeft(){const g=S.g;return g.fam==='stud'?4-S.street:3-S.street}
+function cpuDecideStrong(p){
+  const L=legal(p),{eq,n}=estimateStrong(p,Math.round(ITERS[S.g.id]*1.5)),r=Math.random(),pot=totalPot(),nO=n-1,s=eq*n,last=streetsLeft()<=0;
+  const behind=S.players.filter(o=>o!==p&&!o.folded&&!o.allIn&&!o.acted).length,ag=p.style.aggr;
+  // bluff only as much as the remaining opponents actually fold
+  const foes=S.players.filter(o=>o!==p&&!o.folded);
+  const fe=Math.min(1,Math.min(...foes.map(o=>((o.tFold||0)+2)/((o.tAct||0)+6)))/.4);
+  if(L.canCheck){
+    if(L.canRaise){
+      if(s>1.5/ag){if(behind>0&&s>2.2&&S.street>=1&&r<.3)return {type:'check'};return raiseAct(L,s,pot,true)}
+      if(!last&&S.street>=1&&s>1.05&&r<(.2+.2*fe)*ag)return raiseAct(L,s,pot,true);
+      if(nO<=2&&behind===0&&S.street>=1&&eq<.3&&r<(last?.24:.16)*ag*fe)return raiseAct(L,s,pot,true);
+    }
+    return {type:'check'};
+  }
+  const odds=L.toCall/(pot+L.toCall);
+  if(L.canRaise&&(s>1.85/ag||(nO===1&&eq>.62))&&r<.9)return raiseAct(L,s,pot,true);
+  const implied=last?0:(S.g.pot?.1:.05);
+  if(eq>=odds-implied)return {type:'call'};
+  return {type:'fold'};
+}
+function cpuDecide(p){
+  if(isStrong(p))return cpuDecideStrong(p);
+  const L=legal(p),{eq,n}=estimate(p,ITERS[S.g.id]),st=p.style,r=Math.random(),s=eq*n,pot=totalPot();
+  if(L.canCheck){
+    if(L.canRaise&&((s>1.3/st.aggr&&r>.12)||(r<.06*st.aggr&&S.street>=1)))return raiseAct(L,s,pot);
+    return {type:'check'};
+  }
+  const odds=L.toCall/(pot+L.toCall);
+  if(L.canRaise&&s>1.8/st.aggr&&r<.8)return raiseAct(L,s,pot);
+  const floor=S.street>=1?(S.g.fam==='draw'?.75:.5)/n*(1-st.loose):0;
+  if(eq>=Math.max(odds*(1-st.loose),floor)||r<.03)return {type:'call'};
+  return {type:'fold'};
+}
+function raiseAct(L,s,pot,strong){
+  if(!L.isPot)return {type:'raise',to:L.raiseTo2&&s>(strong?1.6:2)?L.raiseTo2:L.raiseTo};
+  let to=strong?(L.toCall===0?pot*(s>1.8?.8:.6):(s>2.3?L.maxTo:L.minTo+(L.maxTo-L.minTo)*.5)):L.toCall===0?pot*(.5+Math.random()*.35):(s>2.3?L.maxTo:L.minTo+(L.maxTo-L.minTo)*(.4+Math.random()*.4));
+  to=Math.round(to/10)*10;
+  return {type:'raise',to:Math.max(L.minTo,Math.min(L.maxTo,to))};
+}
+
+/* ---------- hand flow ---------- */
+async function playHand(){
+  if(!isOn(S.gameIdx))S.gameIdx=nextEnabled(S.gameIdx);
+  const g=S.g=GAMES[S.gameIdx];
+  S.handNo++;
+  S.level=S.mode==='tour'?S.tourLevel:SET.level;
+  if(REC.level!==S.level){if(REC.hands>0){HIST.unshift(clone(REC))}REC=newRec()}
+  Object.assign(S,{deck:shuffle(fullDeck()),muck:[],burned:[],board:[],drawsDone:0,drawNo:0,result:null,reveal:false,over:false,street:0,phase:'bet',bringIn:-1,acting:-1});
+  if(S.mode==='tour'){
+    const lv=Math.min(TOUR.mults.length-1,Math.floor(S.tourHands/TOUR.perLevel));
+    if(lv!==S.blindLv){S.blindLv=lv;S.mult=TOUR.mults[lv];if(lv>0){log(`レベル${lv+1}：ベット額が ${smallBet()}/${bigBet()} に上がりました`,'sys');toast(`レベル${lv+1}　${smallBet()}/${bigBet()} に上昇`)}}
+    S.tourHands++;
+  }
+  for(const p of S.players){
+    if(p.stack<=0&&S.mode!=='tour'){p.stack=START;p.buyin+=START;log(`${p.name} が ${fmt(START)} をリバイ`,'sys')}
+    Object.assign(p,{cards:[],folded:!!p.out,allIn:false,streetBet:0,total:0,acted:false,vol:false,vpip:false,lastAct:p.out?'敗退':'',draws:[],showDesc:'',won:0,aggN:0,startStack:p.stack});
+  }
+  S.rollup=false;S.scoop=false;S.myEval=null;S.sbI=-1;S.bbI=-1;
+  log(`#${S.handNo}　${g.code.toUpperCase()}　${g.name}`,'sep');
+  resetStreet();
+  if(g.fam==='stud')await playStud();else await playBlindGame();
+}
+const seated=()=>S.players.filter(p=>!p.out);
+function nextSeat(i){for(let k=1;k<=5;k++){const j=(i+k)%5;if(!S.players[j].out)return j}return i}
+function postBlinds(){
+  // heads-up: the button posts the small blind and acts first before the flop
+  const B=S.button,hu=seated().length===2,sbI=hu?B:nextSeat(B),bbI=nextSeat(sbI);
+  S.sbI=sbI;S.bbI=bbI;const sb=S.players[sbI],bb=S.players[bbI];
+  put(sb,sbAmt());sb.lastAct=`SB ${sbAmt()}`;put(bb,bbAmt());bb.lastAct=`BB ${bbAmt()}`;
+  S.currentBet=bbAmt();S.lastRaise=bbAmt();S.raises=1;
+  return nextSeat(bbI);
+}
+async function playBlindGame(){
+  const g=S.g,B=S.button,n=g.fam==='board'?g.hole:g.size;
+  for(const p of seated())for(let k=0;k<n;k++)p.cards.push(dealCard());
+  const first=postBlinds();render();await wait(400*pace());
+  if(await round(first))return;
+  if(g.fam==='board'){
+    for(let st=1;st<=3;st++){
+      resetStreet();S.street=st;
+      burn();const k=st===1?3:1;for(let i=0;i<k;i++)S.board.push(dealCard());
+      S.players.forEach(p=>{if(!p.folded&&!p.allIn)p.lastAct=''});
+      render();await wait(650*pace());
+      if(await round((B+1)%5))return;
+    }
+  }else{
+    for(let d=1;d<=3;d++){
+      await drawPhase(d);S.drawsDone=d;
+      resetStreet();S.street=d;render();
+      if(await round((B+1)%5))return;
+    }
+  }
+  await showdown();
+}
+async function drawPhase(d){
+  S.phase='draw';S.drawNo=d;burn();
+  S.players.forEach(p=>p.cards.forEach(c=>{delete c.fresh}));
+  for(let k=1;k<=5;k++){
+    const i=(S.button+k)%5,p=S.players[i];if(p.folded)continue;
+    S.acting=i;render();
+    let disc;
+    if(p.human){S.sel=new Set();disc=await ask('draw')}
+    else{await wait(speedBase()*.8*pace());disc=isStrong(p)?chooseDiscardStrong(p,d):policy(S.g.id,p.cards,4-d)}
+    const old=[];
+    for(const idx of disc){old.push(p.cards[idx]);p.cards[idx]={...dealCard(p),fresh:true}}
+    S.muck.push(...old);p.draws.push(disc.length);
+    p.lastAct=disc.length?`${disc.length}枚交換`:'スタンドパット';
+    log(`${p.name}：${p.lastAct}`);
+    S.acting=-1;render();
+  }
+  S.phase='bet';
+}
+async function playStud(){
+  const g=S.g;
+  for(const p of seated()){put(p,anteAmt());p.streetBet=0}
+  for(const p of seated()){p.cards.push({...dealCard(),up:false},{...dealCard(),up:false},{...dealCard(),up:true})}
+  log(`全員アンティ ${anteAmt()}`,'sys');
+  {const me=S.players[0];if(!me.out&&me.cards[0].r===me.cards[1].r&&me.cards[1].r===me.cards[2].r)S.rollup=true}
+  const key=c=>g.id==='RAZZ'?(c.r===14?1:c.r)*4+c.s:-(c.r*4+c.s);
+  let bi=0,bv=-Infinity;S.players.forEach((p,i)=>{if(p.out)return;const v=key(p.cards[2]);if(v>bv){bv=v;bi=i}});
+  S.bringIn=bi;const bp=S.players[bi];S.unit=smallBet();
+  S.acting=bi;render();
+  let complete;
+  if(bp.human)complete=await ask('bringin');
+  else{await wait(speedBase()*pace());if(isStrong(bp)){const {eq,n}=estimateStrong(bp,ITERS[g.id]);complete=eq*n>1.4&&Math.random()<.85}else{const {eq,n}=estimate(bp,ITERS[g.id]);complete=eq*n>1.7/bp.style.aggr&&Math.random()<.75}}
+  if(complete){put(bp,smallBet());bp.vol=true;bp.vpip=true;bp.lastAct=`コンプリート ${smallBet()}`;S.currentBet=bp.streetBet;S.raises=1}
+  else{put(bp,bringAmt());bp.lastAct=`ブリングイン ${bringAmt()}`;S.currentBet=bp.streetBet;S.raises=0}
+  bp.acted=true;S.lastRaise=smallBet();S.acting=-1;
+  log(`${bp.name}：${bp.lastAct}`);
+  render();await wait(400*pace());
+  if(await round((bi+1)%5))return;
+  for(let st=1;st<=4;st++){
+    resetStreet();S.street=st;
+    burn();for(const p of S.players)if(!p.folded)p.cards.push({...dealCard(),up:st<4});
+    if(st===1&&g.id==='STUD'&&live().some(p=>{const u=p.cards.filter(c=>c.up);return u.length===2&&u[0].r===u[1].r})){S.openPair=true;log(`4thストリートでオープンペア：このラウンドは ${bigBet()} のベットも可能`,'sys')}
+    S.players.forEach(p=>{if(!p.folded&&!p.allIn)p.lastAct=''});
+    render();await wait(600*pace());
+    if(await round(bestShowing()))return;
+  }
+  await showdown();
+}
+function bestShowing(){
+  let best=-1,bv=null;
+  for(let k=1;k<=5;k++){const i=(S.button+k)%5,p=S.players[i];if(p.folded)continue;
+    const ups=p.cards.filter(c=>c.up),v=S.g.id==='RAZZ'?-groupScore(ups,true):groupScore(ups,false);
+    if(bv===null||v>bv){bv=v;best=i}}
+  return best;
+}
+function awardUncontested(w){
+  const amt=totalPot();w.stack+=amt;w.won=amt;S.over=true;S.acting=-1;
+  S.result={lines:[`${w.name} がポット ${fmt(amt)} を獲得（ほかは全員フォールド）`]};
+  log(S.result.lines[0],'win');
+}
+function buildPots(){
+  const lv=[...new Set(S.players.map(p=>p.total).filter(x=>x>0))].sort((a,b)=>a-b),pots=[];let prev=0;
+  for(const L of lv){
+    let amt=0;for(const p of S.players)amt+=Math.max(0,Math.min(p.total,L)-prev);
+    const elig=S.players.filter(p=>!p.folded&&p.total>=L);const last=pots[pots.length-1];
+    if(amt>0){if(last&&(!elig.length||(last.elig.length===elig.length&&last.elig.every(p=>elig.includes(p)))))last.amt+=amt;else if(elig.length)pots.push({amt,elig})}
+    prev=L;
+  }
+  return pots;
+}
+async function showdown(){
+  const g=S.g;S.reveal=true;S.over=true;S.acting=-1;
+  const lv=live(),ev=new Map();
+  lv.forEach(p=>{const e=evaluate(g.id,p.cards,S.board);ev.set(p,e);
+    p.showDesc=e.map((h,k)=>{const lab=halfLabel(g.id,k);return lab?`${lab}: ${describe(h.t,h.v)}`:describe(h.t,h.v)}).join(' / ')});
+  if(ev.has(S.players[0]))S.myEval=ev.get(S.players[0]);
+  const pots=buildPots(),order=[];for(let k=1;k<=5;k++)order.push(S.players[(S.button+k)%5]);
+  const lines=[];
+  pots.forEach((pot,pi)=>{
+    const elig=order.filter(p=>pot.elig.includes(p)),H=ev.get(elig[0]).length,qual=[];
+    for(let h=0;h<H;h++){let b=null;for(const p of elig){const v=ev.get(p)[h].v;if(v!==null&&(b===null||v>b))b=v}
+      if(b!==null)qual.push({h,b,w:elig.filter(p=>ev.get(p)[h].v===b)})}
+    let left=pot.amt;
+    if(pi===0&&H>1&&qual.length&&qual.every(q=>q.w.length===1&&q.w[0]===S.players[0]))S.scoop=true;
+    qual.forEach((q,qi)=>{
+      const part=qi===qual.length-1?left:Math.ceil(pot.amt/qual.length);left-=part;
+      const base=Math.floor(part/q.w.length),extra=part-base*q.w.length;q.w.forEach((p,wi)=>{const sh=base+(wi<extra?1:0);p.stack+=sh;p.won+=sh});
+      const lab=halfLabel(g.id,q.h),pn=pots.length>1?(pi===0?'メインポット':`サイドポット${pi}`):'ポット';
+      const scoop=H>1&&qual.length===1?'（ローなしで総取り）':'';
+      lines.push(`${q.w.map(p=>p.name).join('・')} が${pn}${lab&&!scoop?`の${lab}`:''} ${fmt(part)} を獲得${scoop} ― ${describe(ev.get(q.w[0])[q.h].t,q.b)}`);
+    });
+  });
+  S.result={lines};lines.forEach(l=>log(l,'win'));
+  render();
+}
+async function main(){
+  const my=TOKEN;
+  try{
+    while(true){
+      await playHand();
+      if(S.mode==='free')recordHand();
+      const fin=S.mode==='tour'?settleTour():null;
+      handEvent();render();
+      if(fin){finishTour(fin);await ask('tourEnd');return}
+      const pr=ask('next');
+      if(SET.auto){const pend=S.pending;setTimeout(()=>{if(S.pending===pend)pend.resolve(true)},3800)}
+      await pr;
+      S.handsInGame++;if(S.handsInGame>=SET.handsPer){S.handsInGame=0;S.gameIdx=nextEnabled(S.gameIdx)}
+      S.button=nextSeat(S.button);
+    }
+  }catch(e){
+    if(e instanceof Abort)return;
+    console.error(e);log('エラーが起きたので次のハンドに進みます：'+e.message,'sys');render();
+    setTimeout(()=>{if(my===TOKEN){S.button=nextSeat(S.button);main()}},1500);
+  }
+}
+
+/* ---------- rendering ---------- */
+function cardHTML(c,o={}){
+  if(o.hidden)return `<div class="cd back${o.tuck?' tuck':''}" aria-label="裏向きのカード"></div>`;
+  const cls=['cd','s'+c.s];if(o.dn)cls.push('dn');if(o.sel)cls.push('sel');if(o.pick)cls.push('pick');if(c.fresh)cls.push('fresh');
+  const pick=o.pick?` data-pick="${o.idx}" role="button" tabindex="0" aria-pressed="${!!o.sel}"`:'';
+  return `<div class="${cls.join(' ')}"${pick} aria-label="${SUITNAME[c.s]}の${RCH(c.r)}"><span class="r">${RFACE(c.r)}</span><span class="s">${SUITS[c.s]}</span></div>`;
+}
+function posBadge(i){
+  const g=S.g;if(!g)return '';
+  if(g.fam==='stud')return i===S.bringIn&&S.street===0&&!S.over?'<span class="pos">BI</span>':'';
+  const B=S.button,hu=S.sbI===B;return i===B?`<span class="pos d">${hu?'D/SB':'D'}</span>`:i===S.sbI?'<span class="pos">SB</span>':i===S.bbI?'<span class="pos">BB</span>':'';
+}
+function drawHist(p){return S.g&&S.g.fam==='draw'&&p.draws.length?`<span class="dh">交換 ${p.draws.map(n=>n===0?'パット':n).join(' · ')}</span>`:''}
+function seatHTML(p,i){
+  if(p.out)return `<div class="seat out"><div class="info"><div class="sh"><span class="nm">${p.name}</span></div><div class="meta"><span>敗退 ${p.place}位</span></div></div><div class="cbox"></div></div>`;
+  const g=S.g,cls=['seat'];if(S.acting===i)cls.push('acting');if(p.folded)cls.push('folded');if(S.over&&p.won>0)cls.push('win');
+  let list=[];
+  if(g){if(g.fam==='stud')list=p.cards.map(c=>{const show=c.up||(S.reveal&&!p.folded);return {c,o:{hidden:!show,dn:!c.up&&show}}});
+    else if(!p.folded)list=p.cards.map(c=>({c,o:{hidden:!S.reveal}}))}
+  // Face-down backs carry no information, so they tuck under the next card; face-up cards get the full width.
+  let u=0;list.forEach((x,k)=>{const tuck=x.o.hidden&&k<list.length-1;x.o.tuck=tuck;u+=tuck?.34:1});
+  const cards=list.map(x=>cardHTML(x.c,x.o)).join('');
+  const status=S.over&&p.won>0?`<span class="won">+${fmt(p.won)}</span>`:p.allIn&&!p.folded?'<span class="ai">オールイン</span>':`<span>${p.lastAct||''}</span>`;
+  return `<div class="${cls.join(' ')}">
+    <div class="info">
+      <div class="sh">${posBadge(i)}<span class="nm">${p.name}</span><span class="sty">${p.tag}</span><span class="stk">${fmt(p.stack)}</span></div>
+      <div class="meta">${status}${p.streetBet>0&&!S.over?`<span class="bet">${fmt(p.streetBet)}</span>`:''}</div>
+      ${drawHist(p)?`<div class="meta dhm">${drawHist(p)}</div>`:''}
+    </div>
+    <div class="cbox">
+      <div class="cards opp" style="--u:${Math.max(u,1).toFixed(2)};--k:${Math.max(list.length,1)}">${cards||'<div class="cd ghost"></div>'}</div>
+      ${S.over&&S.reveal&&!p.folded&&p.showDesc?`<div class="desc">${p.showDesc}</div>`:''}
+    </div>
+  </div>`;
+}
+function liveDesc(p){
+  const g=S.g;if(!g||!p.cards.length)return '';let ev;
+  if(g.fam==='board'){if(S.board.length<3)return '';ev=evaluate(g.id,p.cards,S.board)}
+  else if(g.fam==='stud'){if(p.cards.length<5)return '';ev=evaluate(g.id,p.cards,[])}
+  else ev=evaluate(g.id,p.cards,[]);
+  return ev.map((h,k)=>{const lab=halfLabel(g.id,k),d=describe(h.t,h.v);return lab?`${lab}: ${d}`:d}).join(' / ');
+}
+function ladder(){
+  const g=S.g;let steps,idx;
+  if(g.fam==='board'){steps=['プリフロップ','フロップ','ターン','リバー'];idx=S.street}
+  else if(g.fam==='stud'){steps=['3rd','4th','5th','6th','7th'];idx=S.street}
+  else{steps=['ベット','ドロー1','ベット','ドロー2','ベット','ドロー3','ベット'];idx=S.phase==='draw'?S.drawNo*2-1:S.street*2}
+  if(S.reveal)idx=steps.length;
+  return steps.map((s,i)=>`<i class="${i<idx?'done':i===idx?'now':''}">${s}</i>`).join('')+(S.reveal?'<i class="now">ショーダウン</i>':'');
+}
+function renderTop(){
+  $('#rot').innerHTML=GAMES.map((g,i)=>`<b class="${i===S.gameIdx?'cur':''} ${isOn(i)?'':'off'}" title="${g.name}">${g.chip}</b>`).join('');
+  const leftN=Math.max(1,SET.handsPer-S.handsInGame),nx=GAMES[nextEnabled(S.gameIdx)];
+  $('#rotNote').textContent=`このゲームはあと ${leftN} ハンド　次は ${nx.name}`;
+  const net=REC.net;
+  $('#lvlBadge').hidden=(S.level||SET.level)!=='strong';
+  if(S.mode==='tour'){$('#netMini').innerHTML='';$('#rotNote').textContent+=`　トーナメント中`}
+  else $('#netMini').innerHTML=` <b class="${net>=0?'up':'down'}">${net>=0?'+':''}${fmt(net)}</b>`;
+  $('#stats').innerHTML=`<span>ハンド #${S.handNo}</span><button class="netbtn" data-act="stats" type="button">収支 <b class="${net>=0?'up':'down'}">${net>=0?'+':''}${fmt(net)}</b></button>`;
+}
+function renderCenter(){
+  const g=S.g;if(!g)return;
+  const lim=`${smallBet()}/${bigBet()}`,bl=`${sbAmt()}/${bbAmt()}`;
+  const struct=g.pot?`ポットリミット・ブラインド ${bl}`:g.fam==='stud'?`リミット ${lim}・アンティ ${anteAmt()}・ブリングイン ${bringAmt()}${g.id==='STUD'?`・4thオープンペアで${bigBet()}可`:''}`:g.fam==='draw'?`リミット ${lim}・ブラインド ${bl}・2回目のドロー後から${bigBet()}`:`リミット ${lim}・ブラインド ${bl}・ターンから${bigBet()}`;
+  let board='';
+  if(g.fam==='board'){const sl=[];for(let k=0;k<5;k++)sl.push(S.board[k]?cardHTML(S.board[k]):'<div class="slot"></div>');board=`<div class="board">${sl.join('')}</div>`}
+  let res='';
+  if(S.result){const me=S.players[0],d=me.won-me.total;
+    res=`<div class="banner">${S.result.lines.map(l=>`<div>${l}</div>`).join('')}${me.total>0?`<div class="delta ${d>=0?'up':'down'}">このハンドのあなた ${d>=0?'+':''}${fmt(d)}</div>`:''}</div>`}
+  const c=$('#center');c.classList.toggle('showhint',HINT);c.classList.toggle('done',!!S.result);
+  c.innerHTML=`<div class="ghead"><div class="code">${g.code}</div><button class="gname" data-act="hint" type="button" aria-expanded="${HINT}"><span>${g.name}</span><span class="struct">${struct}</span><span class="more">${HINT?'ルールを閉じる':'ルール'}</span></button></div><div class="hint">${g.hint} <button class="morelink" data-act="help" data-game="${g.id}" type="button">詳しいルール</button></div><div class="lrow"><div class="ladder">${ladder()}</div><div class="pot">ポット <b>${fmt(totalPot())}</b>${g.fam==='draw'?`<span class="stub">山札 ${S.deck.length}枚</span>`:''}</div></div>${S.mode==='tour'?tourLine():''}${board}${res}`;
+}
+function renderMe(){
+  const p=S.players[0],g=S.g,picking=S.pending&&S.pending.type==='draw',el=$('#me');
+  el.className='me'+(S.acting===0?' acting':'')+(p.folded?' folded':'')+(S.over&&p.won>0?' win':'');
+  const cards=g?p.cards.map((c,i)=>cardHTML(c,{dn:g.fam==='stud'&&!c.up,pick:picking,idx:i,sel:picking&&S.sel.has(i)})).join(''):'';
+  const ld=liveDesc(p);
+  el.innerHTML=`<div class="sh">${posBadge(0)}<span class="nm">あなた</span>${p.allIn&&!p.folded?'<span class="ai">オールイン</span>':''}<span class="stk">${fmt(p.stack)}</span></div>
+    <div class="cards" style="--n:${Math.max(p.cards.length,1)}">${cards}</div>
+    <div class="meta">${p.streetBet>0&&!S.over?`<span class="bet">${fmt(p.streetBet)}</span>`:''}${ld?`<span class="desc">いまの役：${ld}</span>`:''}${drawHist(p)}</div>
+    ${g&&g.fam==='stud'?'<div class="kbd">色の濃いカードは自分にしか見えない伏せ札です</div>':''}`;
+}
+function renderActs(){
+  const P=S.pending,el=$('#acts');
+  if(P&&P.type==='bet'){
+    const L=P.data;let sizer='',raiseBtn='';
+    if(L.canRaise){
+      if(L.isPot){
+        sizer=`<div class="sizer"><input type="range" id="amt" min="${L.minTo}" max="${L.maxTo}" step="10" value="${L.minTo}" aria-label="${L.word}額">
+          <button class="chipbtn" data-act="size" data-f="min" type="button">最小</button><button class="chipbtn" data-act="size" data-f="half" type="button">½ポット</button><button class="chipbtn" data-act="size" data-f="pot" type="button">ポット</button></div>`;
+        raiseBtn=`<button class="btn pri" data-act="raise" type="button" id="raiseBtn">${L.word} ${fmt(L.minTo)}</button>`;
+      }else{
+        raiseBtn=`<button class="btn pri" data-act="raise" type="button">${L.word} ${fmt(L.raiseTo)}</button>`;
+        if(L.raiseTo2)raiseBtn+=`<button class="btn pri" data-act="raise2" type="button">${L.word} ${fmt(L.raiseTo2)}</button>`;
+      }
+    }
+    const odds=L.toCall>0?`<div class="note">ポット ${fmt(L.pot)} に対して ${fmt(L.toCall)} のコール（オッズ ${(L.pot/L.toCall).toFixed(1)} : 1）</div>`:'';
+    const notes=[];
+    if(L.raiseTo2)notes.push(`オープンペアが出ているので、${smallBet()} と ${bigBet()} のどちらでも打てます`);
+    if(!L.isPot&&L.canRaise)notes.push(L.capLeft==null?'ヘッズアップなのでレイズ回数の上限なし':`キャップまであと ${L.capLeft} ベット`);
+    if(!L.isPot&&!L.canRaise&&!L.canCheck&&S.players[0].capped)notes.push('ショートのオールインはレイズ扱いにならないため、コールかフォールドのみ');
+    else if(!L.isPot&&!L.canRaise&&S.raises>=maxBets())notes.push('キャップに達したのでレイズできません');
+    el.innerHTML=`<div class="acts" style="flex-direction:column">${sizer}<div class="acts">${L.canCheck?'':'<button class="btn" data-act="fold" type="button">フォールド</button>'}<button class="btn" data-act="call" type="button">${L.canCheck?'チェック':`コール ${fmt(L.toCall)}`}</button>${raiseBtn}</div>${odds}${notes.length?`<div class="note">${notes.join('　')}</div>`:''}<div class="kbd">キー操作　F フォールド・C チェック/コール・R ${L.word}</div></div>`;
+  }else if(P&&P.type==='bringin'){
+    el.innerHTML=`<div class="acts" style="flex-direction:column"><div class="note">表向きのカードで、あなたがブリングインです。最低額の ${bringAmt()} か、スモールベットの ${smallBet()} にコンプリートするかを選んでください</div><div class="acts"><button class="btn" data-act="bringin" type="button">ブリングイン ${bringAmt()}</button><button class="btn pri" data-act="complete" type="button">コンプリート ${smallBet()}</button></div></div>`;
+  }else if(P&&P.type==='draw'){
+    const n=S.sel.size;
+    el.innerHTML=`<div class="acts" style="flex-direction:column"><div class="note">${S.drawNo}回目の交換：捨てるカードをタップして選んでください</div><div class="acts"><button class="btn pri" data-act="draw" type="button">${n?`${n}枚交換する`:'スタンドパット（交換しない）'}</button></div><div class="kbd">Enter で確定</div></div>`;
+  }else if(P&&P.type==='tourEnd'){
+    el.innerHTML=`<div class="acts"><button class="btn pri" data-act="tour" type="button">もう一度トーナメント</button><button class="btn" data-act="free" type="button">フリープレイ</button><button class="btn" data-act="home" type="button">ロビー</button></div>`;
+  }else if(P&&P.type==='next'){
+    el.innerHTML=`<div class="acts"><button class="btn pri" data-act="next" type="button">次のハンドへ</button></div>`;
+  }else{
+    const a=S.players[S.acting];
+    const txt=a&&!a.human?`${a.name} が${S.phase==='draw'?'交換するカードを選んでいます':'考えています'}…`:S.players[0].folded?'フォールドしました。ハンドの続きを見ています':'';
+    el.innerHTML=`<div class="acts"><div class="note">${txt}</div></div>`;
+  }
+}
+let lastLogLen=-1,HINT=false;
+function renderLog(){
+  if(S.log.length===lastLogLen)return;lastLogLen=S.log.length;
+  const ol=$('#log');ol.innerHTML=S.log.map(l=>`<li class="${l.cls}">${l.text}</li>`).join('');ol.scrollTop=ol.scrollHeight;
+}
+function render(){if(!S.g)return;renderTop();const op=$('#opps');op.className='opps'+(S.g.fam==='stud'||S.reveal?' wide':'');op.innerHTML=[1,2,3,4].map(i=>seatHTML(S.players[i],i)).join('');renderCenter();renderMe();renderActs();renderLog()}
+
+/* ---------- input ---------- */
+function sizeTo(f){
+  const L=S.pending.data,inp=$('#amt');if(!inp)return;
+  const raw=S.currentBet-S.players[0].streetBet;let to;
+  if(f==='min')to=L.minTo;else if(f==='pot')to=L.maxTo;else to=S.currentBet+Math.max(raw,0)+(totalPot()+Math.max(raw,0))/2;
+  to=Math.max(L.minTo,Math.min(L.maxTo,Math.round(to/10)*10));inp.value=to;updRaise();
+}
+function updRaise(){const inp=$('#amt'),b=$('#raiseBtn');if(inp&&b&&S.pending){let v=+inp.value;const L=S.pending.data;if(+inp.max===L.maxTo&&v>L.maxTo-10)v=v>=L.maxTo-5?L.maxTo:v;b.textContent=`${L.word} ${fmt(v)}`}}
+function act(name,el){
+  const P=S.pending;
+  switch(name){
+    case 'fold':if(P&&P.type==='bet'&&!P.data.canCheck)P.resolve({type:'fold'});break;
+    case 'call':if(P&&P.type==='bet')P.resolve({type:P.data.canCheck?'check':'call'});break;
+    case 'raise':if(P&&P.type==='bet'&&P.data.canRaise){const L=P.data;let to=L.raiseTo;if(L.isPot){to=+$('#amt').value;if(to>L.maxTo-10)to=Math.min(L.maxTo,to)}P.resolve({type:'raise',to:L.isPot?Math.max(L.minTo,Math.min(L.maxTo,to)):to})}break;
+    case 'raise2':if(P&&P.type==='bet'&&P.data.raiseTo2)P.resolve({type:'raise',to:P.data.raiseTo2});break;
+    case 'bringin':if(P&&P.type==='bringin')P.resolve(false);break;
+    case 'complete':if(P&&P.type==='bringin')P.resolve(true);break;
+    case 'size':if(P&&P.type==='bet')sizeTo(el.dataset.f);break;
+    case 'draw':if(P&&P.type==='draw')P.resolve([...S.sel]);break;
+    case 'next':if(P&&P.type==='next')P.resolve(true);break;
+    case 'settings':openSettings();break;
+    case 'hint':HINT=!HINT;renderCenter();break;
+    case 'log':{const lg=$('.log');lg.classList.toggle('open');if(lg.classList.contains('open')){const ol=$('#log');ol.scrollTop=ol.scrollHeight}break}
+    case 'stats':$('#statSheet').hidden=false;wipeArmed=false;renderStats();break;
+    case 'sclose':$('#statSheet').hidden=true;break;
+    case 'help':openHelp(el&&el.dataset.game?'games':null,el&&el.dataset.game);break;
+    case 'hclose':closeHelp();break;
+    case 'home':$('#tourSheet').hidden=true;openHome();break;
+    case 'homeclose':$('#homeSheet').hidden=true;break;
+    case 'tour':$('#homeSheet').hidden=true;$('#tourSheet').hidden=true;startMode('tour');break;
+    case 'free':$('#homeSheet').hidden=true;$('#tourSheet').hidden=true;if(S.mode!=='free'||(S.pending&&S.pending.type==='tourEnd'))startMode('free');break;
+    case 'resume':$('#homeSheet').hidden=true;break;
+    case 'htab':HTAB=el.dataset.tab;renderHelp();$('#helpBody').scrollTop=0;break;
+    case 'hgame':HGAME=el.dataset.game;renderHelp();break;
+    case 'stab':STAB=el.dataset.tab;wipeArmed=false;renderStats();break;
+    case 'lf':LF=el.dataset.lv;renderStats();break;
+    case 'wipe':if(wipeArmed){wipeArmed=false;wipeHistory()}else{wipeArmed=true;renderStats()}break;
+    case 'close':$('#sheet').hidden=true;render();break;
+    case 'reset':{const b=$('#resetBtn');if(b.dataset.armed){b.dataset.armed='';b.textContent='最初からやり直す';$('#sheet').hidden=true;resetSession()}else{b.dataset.armed='1';b.textContent='もう一度押すとリセット'}break}
+  }
+}
+function togglePick(i){const P=S.pending;if(!P||P.type!=='draw')return;i=+i;if(S.sel.has(i))S.sel.delete(i);else S.sel.add(i);render()}
+document.addEventListener('click',e=>{
+  const pk=e.target.closest('[data-pick]');if(pk){togglePick(pk.dataset.pick);return}
+  const b=e.target.closest('[data-act]');if(b)act(b.dataset.act,b);
+  if(e.target.id==='sheet'){$('#sheet').hidden=true;render()}
+  if(e.target.id==='statSheet')$('#statSheet').hidden=true;
+  if(e.target.id==='helpSheet')closeHelp();
+  if(e.target.id==='homeSheet')$('#homeSheet').hidden=true;
+});
+document.addEventListener('input',e=>{if(e.target.id==='amt')updRaise()});
+document.addEventListener('keydown',e=>{
+  if(!$('#sheet').hidden){if(e.key==='Escape'){$('#sheet').hidden=true;render()}return}
+  if(!$('#statSheet').hidden){if(e.key==='Escape')$('#statSheet').hidden=true;return}
+  if(!$('#helpSheet').hidden){if(e.key==='Escape')closeHelp();return}
+  if(!$('#homeSheet').hidden){if(e.key==='Escape')$('#homeSheet').hidden=true;return}
+  if(!$('#tourSheet').hidden)return;
+  const pk=e.target.closest&&e.target.closest('[data-pick]');
+  if(pk&&(e.key===' '||e.key==='Enter')){e.preventDefault();togglePick(pk.dataset.pick);return}
+  if(e.target.matches('input,select,textarea,button'))if(e.key==='Enter'||e.key===' ')return;
+  const P=S.pending;if(!P)return;const k=e.key.toLowerCase();
+  if(P.type==='bet'){if(k==='f')act('fold');else if(k==='c')act('call');else if(k==='r')act('raise')}
+  else if(P.type==='draw'&&e.key==='Enter')act('draw');
+  else if(P.type==='next'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();act('next')}
+});
+function openSettings(){
+  $('#glist').innerHTML=GAMES.map((g,i)=>`<label><input type="checkbox" id="g-${g.id}" data-gid="${g.id}" ${isOn(i)?'checked':''}><b>${g.chip}</b><span>${g.name}</span></label>`).join('');
+  $('#handsPer').value=String(SET.handsPer);$('#speed').value=SET.speed;$('#level').value=SET.level;$('#auto').checked=!!SET.auto;
+  const b=$('#resetBtn');b.dataset.armed='';b.textContent='最初からやり直す';
+  syncLocks();$('#sheet').hidden=false;
+}
+function syncLocks(){document.querySelectorAll('#glist input').forEach(x=>{x.disabled=x.checked&&SET.enabled.length===1})}
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.gid){const id=t.dataset.gid;if(t.checked){if(!SET.enabled.includes(id))SET.enabled.push(id)}else if(SET.enabled.length>1)SET.enabled=SET.enabled.filter(x=>x!==id);syncLocks()}
+  else if(t.id==='handsPer')SET.handsPer=+t.value;
+  else if(t.id==='speed')SET.speed=t.value;
+  else if(t.id==='level')SET.level=t.value;
+  else if(t.id==='auto')SET.auto=t.checked;
+  else return;
+  saveSettings();renderTop();
+});
+function resetSession(){
+  TOKEN++;const p=S.pending;S.pending=null;if(p)p.resolve(null);
+  if(REC.hands>0)HIST.unshift(clone(REC));REC=newRec();
+  S=newSession('free');lastLogLen=-1;main();renderStats();
+}
+function startMode(mode){
+  TOKEN++;const p=S.pending;S.pending=null;if(p)p.resolve(null);
+  S=newSession(mode);lastLogLen=-1;S.tourLevel=SET.level;
+  if(mode==='tour'){log(`トーナメント開始：5人・各 ${fmt(TOUR.stack)} チップ・${TOUR.perLevel}ハンドごとにベット額が上昇`,'sys')}
+  main();
+}
+
+/* ---------- results tracking ---------- */
+const clone=o=>JSON.parse(JSON.stringify(o));
+function newRec(){const t=Date.now();return {id:'s'+t.toString(36)+Math.random().toString(36).slice(2,6),level:(typeof S!=='undefined'&&S.level)||SET.level,startedAt:t,updatedAt:t,hands:0,net:0,best:0,worst:0,games:{},curve:[]}}
+let LF='all',REC=newRec(),HIST=[],store=null,storeMsg='',STAB='session',wipeArmed=false,saving=false,dirty=false;
+const EMPTY=()=>({hands:0,net:0,won:0,vpip:0,sd:0,sdWon:0});
+function recordHand(){
+  const me=S.players[0],net=me.won-me.total,gid=S.g.id;
+  const gs=REC.games[gid]||(REC.games[gid]=EMPTY());
+  gs.hands++;gs.net+=net;if(me.won>0)gs.won++;if(me.vpip)gs.vpip++;
+  if(S.reveal&&!me.folded){gs.sd++;if(me.won>0)gs.sdWon++}
+  REC.hands++;REC.net+=net;REC.updatedAt=Date.now();
+  REC.best=Math.max(REC.best,net);REC.worst=Math.min(REC.worst,net);
+  REC.curve.push(REC.net);if(REC.curve.length>3000)REC.curve=REC.curve.filter((_,i)=>i%2===1);
+  persist();renderStats();
+}
+async function persist(){
+  if(!store||!REC.hands)return;
+  if(saving){dirty=true;return}
+  saving=true;
+  try{do{dirty=false;await store.save(clone(REC))}while(dirty);if(storeMsg.startsWith('記録を'))storeMsg=''}
+  catch(e){storeMsg=e&&e.code==='quota_exceeded'?'記録の保存上限に達しました。「過去の記録を消す」で空きを作ってください。':'記録を保存できませんでした。通信が戻れば次のハンドで再保存します。'}
+  saving=false;renderStats();
+}
+function lsGet(){try{return JSON.parse(localStorage.getItem('ngm-sessions')||'{}')||{}}catch(e){return {}}}
+function lsSet(m){try{localStorage.setItem('ngm-sessions',JSON.stringify(m))}catch(e){}}
+async function initStore(){
+  try{
+    if(window.claude&&window.claude.use){
+      const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+      const uid=db&&user?await user.id():null;
+      if(uid){const col=db.collection('data/users/'+uid);
+        store={kind:'db',save:r=>col.doc(r.id).set(r),list:async()=>(await col.orderBy('startedAt','desc').limit(200).get()).docs.map(d=>clone(d.data())).filter(r=>r.kind!=='profile'),del:id=>col.doc(id).delete(),
+          saveProfile:pf=>col.doc('profile').set(pf),loadProfile:async()=>{const d=await col.doc('profile').get();return d.exists?clone(d.data()):null}}}
+    }
+  }catch(e){}
+  if(!store)store={kind:'local',save:async r=>{const m=lsGet();m[r.id]=r;lsSet(m)},list:async()=>Object.values(lsGet()).sort((a,b)=>b.startedAt-a.startedAt),del:async id=>{const m=lsGet();delete m[id];lsSet(m)},
+    saveProfile:async pf=>{try{localStorage.setItem('ngm-profile',JSON.stringify(pf))}catch(e){}},loadProfile:async()=>{try{return JSON.parse(localStorage.getItem('ngm-profile')||'null')}catch(e){return null}}};
+  try{const pf=await store.loadProfile();if(pf)PROF={...defaultProfile(),...pf,tours:{...defaultProfile().tours,...(pf.tours||{})},streak:{...defaultProfile().streak,...(pf.streak||{})}}}catch(e){}
+  profReady=true;const q=PEND.splice(0);q.forEach(processEvent);ensureDaily();saveProfile();if(!$('#homeSheet').hidden)renderHome();
+  try{
+    const all=(await store.list()).filter(r=>r&&r.id!==REC.id&&r.hands>0);
+    const known=new Set(HIST.map(r=>r.id));HIST=HIST.concat(all.filter(r=>!known.has(r.id))).sort((a,b)=>b.startedAt-a.startedAt);
+    if(HIST.length>100){const old=HIST.slice(100);HIST=HIST.slice(0,100);for(const r of old){try{await store.del(r.id)}catch(e){}}}
+  }catch(e){storeMsg='過去の記録を読み込めませんでした。このセッションの記録は保存を続けます。'}
+  persist();renderStats();
+}
+async function wipeHistory(){
+  const ids=HIST.map(r=>r.id);HIST=[];renderStats();
+  for(const id of ids){try{await store.del(id)}catch(e){}}
+}
+function aggGames(recs){const out={};for(const r of recs)for(const [id,g] of Object.entries(r.games||{})){const o=out[id]||(out[id]=EMPTY());for(const k in o)o[k]+=g[k]||0}return out}
+const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+const sgn=n=>(n>0?'+':'')+fmt(n);
+const tone=n=>n>0?'up':n<0?'down':'';
+function chartHTML(pts){
+  if(pts.length<2)return '<div class="chart-empty">2ハンド以上遊ぶと、ここに収支の推移が出ます</div>';
+  const n=pts.length;let data=[0,...pts],idx=data.map((_,i)=>i);
+  if(data.length>600){const step=(data.length-1)/600,d=[],ix=[];for(let k=0;k<600;k++){const j=Math.floor(k*step);d.push(data[j]);ix.push(j)}d.push(data[data.length-1]);ix.push(data.length-1);data=d;idx=ix}
+  const max=Math.max(0,...data),min=Math.min(0,...data),span=(max-min)||1;
+  const X=i=>idx[i]/n*1000,Y=v=>(max-v)/span*100,z=Y(0);
+  const pts2=data.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(2)}`);
+  const last=data[data.length-1];
+  const labels=[];if(max>0)labels.push([0,sgn(max)]);if(min<0)labels.push([100,sgn(min)]);
+  if(labels.every(([t])=>Math.abs(t-z)>14))labels.push([z,'0']);
+  return `<div class="chart"><div class="yax">${labels.map(([t,s])=>`<span style="top:${t}%">${s}</span>`).join('')}</div>
+    <div class="plot"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><path class="ar" d="M0,${z} L${pts2.join(' L')} L1000,${z} Z"/><line class="zl" x1="0" x2="1000" y1="${z}" y2="${z}"/><polyline class="ln" points="${pts2.join(' ')}"/></svg>
+    <span class="dot ${last<0?'down':''}" style="left:100%;top:${Y(last)}%" title="${sgn(last)}"></span></div>
+    <div class="xax"><span>0</span><span>${fmt(n)} ハンド</span></div></div>`;
+}
+function renderStats(){
+  const sheet=document.querySelector('#statSheet');if(!sheet||sheet.hidden)return;
+  $('#tab-session').setAttribute('aria-selected',String(STAB==='session'));$('#tab-all').setAttribute('aria-selected',String(STAB==='all'));
+  const lvOf=r=>r.level||'normal';
+  const recs=STAB==='session'?[REC]:[REC,...HIST].filter(r=>r.hands>0&&(LF==='all'||lvOf(r)===LF));
+  const G=aggGames(recs),T=EMPTY();for(const g of Object.values(G))for(const k in T)T[k]+=g[k];
+  let curve;
+  if(STAB==='session')curve=REC.curve;
+  else{curve=[];let off=0;for(const r of recs.slice().sort((a,b)=>a.startedAt-b.startedAt)){for(const v of r.curve||[])curve.push(off+v);off+=r.net}}
+  const best=Math.max(0,...recs.map(r=>r.best||0)),worst=Math.min(0,...recs.map(r=>r.worst||0));
+  const tiles=`<div class="tiles">
+    <div class="tile lead"><span>収支</span><b class="${tone(T.net)}">${sgn(T.net)}</b></div>
+    <div class="tile"><span>ハンド数</span><b>${fmt(T.hands)}</b></div>
+    <div class="tile"><span>100ハンドあたり</span><b class="${tone(T.net)}">${T.hands?sgn(Math.round(T.net/T.hands*100)):'—'}</b></div>
+    <div class="tile"><span>勝ったハンド</span><b>${pct(T.won,T.hands)}</b></div>
+    <div class="tile"><span>参加率 (VPIP)</span><b>${pct(T.vpip,T.hands)}</b></div>
+    <div class="tile"><span>ショーダウン勝率</span><b>${pct(T.sdWon,T.sd)}</b></div>
+    <div class="tile"><span>最大の勝ち</span><b class="${tone(best)}">${sgn(best)}</b></div>
+    <div class="tile"><span>最大の負け</span><b class="${tone(worst)}">${sgn(worst)}</b></div>
+  </div>`;
+  const rows=GAMES.map(g=>{const s=G[g.id];const cur=S.g&&S.g.id===g.id&&STAB==='session'?' cur':'';
+    if(!s||!s.hands)return `<tr class="none${cur}"><td><b>${g.chip}</b>${g.name}</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    return `<tr class="${cur.trim()}"><td><b>${g.chip}</b>${g.name}</td><td>${fmt(s.hands)}</td><td class="${tone(s.net)}">${sgn(s.net)}</td><td class="${tone(s.net)}">${sgn(Math.round(s.net/s.hands*100))}</td><td>${pct(s.won,s.hands)}</td><td>${pct(s.vpip,s.hands)}</td></tr>`}).join('');
+  const ranked=GAMES.map(g=>({g,s:G[g.id]})).filter(x=>x.s&&x.s.hands>=5).map(x=>({...x,r:x.s.net/x.s.hands})).sort((a,b)=>b.r-a.r);
+  const verdict=ranked.length>=2?`<div class="verdict"><span>得意：<b class="up">${ranked[0].g.name}</b>（100ハンドあたり ${sgn(Math.round(ranked[0].r*100))}）</span><span>苦手：<b class="down">${ranked[ranked.length-1].g.name}</b>（${sgn(Math.round(ranked[ranked.length-1].r*100))}）</span></div>`:'<div class="note" style="text-align:left">2種類以上のゲームを5ハンドずつ遊ぶと、得意・苦手なゲームを表示します。</div>';
+  const dt=t=>new Date(t).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const pill=r=>`<span class="lvlpill ${lvOf(r)}">${lvOf(r)==='strong'?'強い':'ふつう'}</span>`;
+  const lfilter=STAB==='all'?`<div class="lfilter" role="group" aria-label="CPUの強さで絞り込む">${[['all','すべて'],['normal','CPU ふつう'],['strong','CPU 強い']].map(([v,t])=>`<button type="button" data-act="lf" data-lv="${v}" aria-pressed="${LF===v}">${t}</button>`).join('')}</div>`:`<div class="note" style="text-align:left">CPUの強さ：${pill(REC)}</div>`;
+  const list=STAB==='all'?`<div class="sec"><h3>セッション履歴</h3><div class="slist">${recs.map(r=>`<div class="srow"><span>${dt(r.startedAt)}${pill(r)}${r===REC?'<span class="live">プレイ中</span>':''}</span><span class="n">${fmt(r.hands)} ハンド</span><span class="n ${tone(r.net)}">${sgn(r.net)}</span></div>`).join('')||'<div class="note" style="text-align:left">まだ記録がありません。</div>'}</div></div>`:'';
+  const where=!store?'記録の保存先を準備しています…':store.kind==='db'?'記録はあなたのアカウントに非公開で保存され、別の端末からも見られます。':'記録はこのブラウザに保存されます。';
+  const wipe=STAB==='all'&&HIST.length?`<button class="linkbtn" data-act="wipe" type="button">${wipeArmed?'もう一度押すと過去の記録を消します':'過去の記録を消す'}</button>`:'';
+  $('#statBody').innerHTML=`<div class="sbody">${lfilter}${tiles}<div class="sec"><h3>収支の推移</h3>${chartHTML(curve)}</div>
+    <div class="sec"><h3>ゲーム別</h3><div class="tscroll"><table class="gt"><thead><tr><th>ゲーム</th><th>ハンド</th><th>収支</th><th>100ハンドあたり</th><th>勝ったハンド</th><th>参加率</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+    ${verdict}${list}
+    <div class="sfoot"><span>${storeMsg||where} 1ハンドごとに自動で記録します。</span>${wipe}</div></div>`;
+}
+/* ---------- progression: rank points, daily missions, achievements, streak, tournaments ---------- */
+const RANKS=[['ルーキー',0],['ブロンズ',300],['シルバー',1000],['ゴールド',2500],['プラチナ',5000],['ダイヤモンド',9000],['マスター',15000],['レジェンド',25000]];
+const MISSION_PTS=40,DAILY_BONUS=60;
+const GBY=Object.fromEntries(GAMES.map(g=>[g.id,g]));
+const MISSIONS={
+  hands:{n:20,text:()=>'ハンドを20回プレイする',test:e=>e.dealt},
+  sdwin:{n:3,text:()=>'ショーダウンで3回勝つ',test:e=>e.sdWin},
+  game:{n:1,text:a=>`${GBY[a].name}でポットを取る`,test:(e,a)=>e.won&&e.gid===a},
+  draw2:{n:2,text:()=>'ドローゲームでポットを2回取る',test:e=>e.won&&e.fam==='draw'},
+  stud2:{n:2,text:()=>'スタッド系のゲームでポットを2回取る',test:e=>e.won&&e.fam==='stud'},
+  board2:{n:2,text:()=>'ホールデム・オマハ系でポットを2回取る',test:e=>e.won&&e.fam==='board'},
+  scoop:{n:1,text:()=>'ハイロー系のゲームでポットを総取りする',test:e=>e.scoop},
+  steal:{n:2,text:()=>'ショーダウンなしでポットを取る（相手を全員降ろす）',test:e=>e.uncontested},
+  big:{n:1,text:()=>'1ハンドでビッグベット10個分以上勝つ',test:e=>e.bigBets>=10},
+  tplay:{n:1,tour:1,text:()=>'トーナメントを最後までプレイする',test:e=>e.tour},
+  ttop3:{n:1,tour:1,text:()=>'トーナメントで3位以内に入る',test:e=>e.tour&&e.place<=3},
+};
+const hiCat=e=>e.myEval?Math.floor(e.myEval[0].v/P5):-1;
+const lowInfo=(e,h)=>{const x=-e.myEval[h].v,u=unpack(x,5);return {cat:u.rest,a:u.a}};
+const bdgInfo=(e,h)=>{const x=-e.myEval[h].v,size=4-Math.floor(x/65536);return {size,top:unpack(x%65536,size).a[0]}};
+const ACH=[
+  {id:'first',name:'初めてのポット',desc:'ポットを取る',pts:30,test:e=>e.won},
+  {id:'steal',name:'全員降ろした',desc:'ショーダウンなしでポットを取る',pts:30,test:e=>e.uncontested},
+  {id:'all11',name:'11ゲーム制覇',desc:'11ゲームすべてでポットを取る',pts:150,test:()=>Object.keys(PROF.gamesWon).length>=GAMES.length},
+  {id:'big25',name:'ビッグポット',desc:'1ハンドでビッグベット25個分以上勝つ',pts:80,test:e=>e.bigBets>=25},
+  {id:'lhe_boat',name:'ホールデムの大物',desc:'ホールデムでフルハウス以上を作って勝つ',pts:60,test:e=>e.gid==='LHE'&&e.sdWin&&hiCat(e)>=6},
+  {id:'plo_flush',name:'オマハの本命',desc:'PLOでフラッシュ以上を作って勝つ',pts:50,test:e=>e.gid==='PLO'&&e.sdWin&&hiCat(e)>=5},
+  {id:'o8_scoop',name:'オマハで総取り',desc:'オマハ ハイローでポットを総取りする',pts:60,test:e=>e.gid==='O8'&&e.scoop},
+  {id:'s8_scoop',name:'スタッドで総取り',desc:'スタッド ハイローでポットを総取りする',pts:60,test:e=>e.gid==='STUD8'&&e.scoop},
+  {id:'rollup',name:'ロールアップ',desc:'スタッド系で最初の3枚が同じ数字',pts:80,test:e=>e.rollup},
+  {id:'razz6',name:'ラズの名手',desc:'ラズで6ロー以下を作って勝つ',pts:50,test:e=>e.gid==='RAZZ'&&e.sdWin&&(i=>i.cat===0&&i.a[0]<=6)(lowInfo(e,0))},
+  {id:'a5wheel',name:'ホイール',desc:'A-5トリプルドローで A-2-3-4-5 を作って勝つ',pts:100,test:e=>e.gid==='A5TD'&&e.sdWin&&(i=>i.cat===0&&i.a[0]===5)(lowInfo(e,0))},
+  {id:'27_75',name:'セブンファイブ',desc:'2-7トリプルドローで 7-5 以下を作って勝つ',pts:60,test:e=>e.gid==='27TD'&&e.sdWin&&(i=>i.cat===0&&i.a[0]===7&&i.a[1]<=5)(lowInfo(e,0))},
+  {id:'bdg4',name:'バドゥーギ完成',desc:'バドゥーギで4枚のバドゥーギを作って勝つ',pts:40,test:e=>e.gid==='BADUGI'&&e.sdWin&&bdgInfo(e,0).size===4},
+  {id:'bdg6',name:'シックスバドゥーギ',desc:'バドゥーギで6以下の4枚バドゥーギを作って勝つ',pts:80,test:e=>e.gid==='BADUGI'&&e.sdWin&&(i=>i.size===4&&i.top<=6)(bdgInfo(e,0))},
+  {id:'bdc_scoop',name:'バデューシー総取り',desc:'バデューシーでポットを総取りする',pts:80,test:e=>e.gid==='BADEUCY'&&e.scoop},
+  {id:'bda_scoop',name:'バデーシー総取り',desc:'バデーシーでポットを総取りする',pts:80,test:e=>e.gid==='BADACEY'&&e.scoop},
+  {id:'patbluff',name:'パットブラフ',desc:'ドローゲームで最後に交換せず、ショーダウンなしで勝つ',pts:60,test:e=>e.fam==='draw'&&e.patLast&&e.uncontested},
+  {id:'t_first',name:'初優勝',desc:'トーナメントで優勝する',pts:100,test:e=>e.tour&&e.place===1},
+  {id:'t_strong',name:'強豪撃破',desc:'CPU「強い」のトーナメントで優勝する',pts:200,test:e=>e.tour&&e.place===1&&e.strong},
+  {id:'t_5',name:'常連',desc:'トーナメントを5回最後までプレイする',pts:80,test:()=>PROF.tours.played>=5},
+  {id:'t_3wins',name:'3冠',desc:'トーナメントで3回優勝する',pts:150,test:()=>PROF.tours.wins>=3},
+  {id:'daily',name:'今日のノルマ',desc:'デイリーミッションを3つすべて達成する',pts:50,test:()=>PROF.dailyAll>=1},
+  {id:'streak3',name:'3日連続',desc:'3日連続でプレイする',pts:50,test:()=>PROF.streak.count>=3},
+  {id:'streak7',name:'1週間連続',desc:'7日連続でプレイする',pts:150,test:()=>PROF.streak.count>=7},
+];
+function defaultProfile(){return {kind:'profile',id:'profile',points:0,tours:{played:0,wins:0,top3:0,best:0,strongWins:0},ach:{},gamesWon:{},daily:null,dailyAll:0,streak:{last:'',count:0,best:0}}}
+let PROF=defaultProfile(),profReady=false,PEND=[],profSaving=false,profDirty=false;
+const dayStr=d=>d.toLocaleDateString('sv-SE');
+const today=()=>dayStr(new Date());
+const yesterday=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayStr(d)};
+function rankOf(pts){let i=0;for(let k=0;k<RANKS.length;k++)if(pts>=RANKS[k][1])i=k;return i}
+function hashStr(t){let h=2166136261;for(const c of t){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function ensureDaily(){
+  const d=today();
+  if(PROF.daily&&PROF.daily.date===d){PROF.daily.list.forEach(m=>{if(!MISSIONS[m.k]){m.k=PROF.daily.list.some(x=>x.k==='tplay')?'ttop3':'tplay';m.arg=null;m.prog=0;m.done=false}});return}
+  let h=hashStr('ngm'+d);const rnd=()=>{h=Math.imul(h^(h>>>15),2246822507)>>>0;h^=h>>>13;return (h>>>0)/4294967296};
+  const pool=Object.keys(MISSIONS).filter(k=>!MISSIONS[k].tour&&!MISSIONS[k].kind),extra=['tplay','ttop3'],tourPick=extra[Math.floor(rnd()*extra.length)],picks=[];
+  while(picks.length<2){const k=pool[Math.floor(rnd()*pool.length)];if(!picks.includes(k))picks.push(k)}
+  const games=SET.enabled.length?SET.enabled:GAMES.map(g=>g.id);
+  PROF.daily={date:d,bonus:false,list:[...picks,tourPick].map(k=>({k,arg:k==='game'?games[Math.floor(rnd()*games.length)]:null,prog:0,done:false}))};
+}
+function addPoints(n,why){
+  const before=rankOf(PROF.points);PROF.points+=n;const after=rankOf(PROF.points);
+  if(after>before)toast(`段位が <b>${RANKS[after][0]}</b> に上がりました`,'rank','昇格');
+}
+function toast(html,kind='',tag=''){
+  const box=document.querySelector('#toasts');if(!box||!box.appendChild)return;
+  const t=document.createElement('div');t.className='toast '+kind;t.innerHTML=`${tag?`<span class="k">${tag}</span>`:''}<span>${html}</span>`;
+  box.appendChild(t);setTimeout(()=>t.remove(),3800);
+  while(box.children.length>3)box.firstChild.remove();
+}
+function handEvent(){
+  const me=S.players[0];if(!me.cards.length)return;
+  const e={kind:'hand',dealt:true,gid:S.g.id,fam:S.g.fam,won:me.won>0,net:me.won-me.total,sdWin:S.reveal&&!me.folded&&me.won>0,
+    uncontested:!S.reveal&&me.won>0,patLast:S.g.fam==='draw'&&me.draws.length>0&&me.draws[me.draws.length-1]===0,
+    scoop:!!S.scoop&&me.won>0,rollup:!!S.rollup,bigBets:(me.won-me.total)/bigBet(),myEval:S.myEval};
+  if(!profReady){PEND.push(e);return}
+  processEvent(e);
+}
+function processEvent(e){
+  ensureDaily();
+  // streak: one hand a day keeps it going
+  const d=today();if(PROF.streak.last!==d){PROF.streak.count=PROF.streak.last===yesterday()?PROF.streak.count+1:1;PROF.streak.best=Math.max(PROF.streak.best,PROF.streak.count);PROF.streak.last=d}
+  if(e.kind==='hand'&&e.won)PROF.gamesWon[e.gid]=true;
+  if(e.kind==='tour'){const t=PROF.tours;t.played++;if(e.place===1){t.wins++;if(e.strong)t.strongWins++}if(e.place<=3)t.top3++;t.best=t.best?Math.min(t.best,e.place):e.place}
+  for(const m of PROF.daily.list){
+    if(m.done)continue;const M=MISSIONS[m.k];if((M.kind||(M.tour?'tour':'hand'))!==e.kind)continue;
+    if(M.test(e,m.arg)){m.prog++;if(m.prog>=M.n){m.done=true;addPoints(MISSION_PTS);toast(`${M.text(m.arg)} <b>+${MISSION_PTS}pt</b>`,'','ミッション達成')}}
+  }
+  if(!PROF.daily.bonus&&PROF.daily.list.every(m=>m.done)){PROF.daily.bonus=true;PROF.dailyAll++;addPoints(DAILY_BONUS);toast(`今日のミッションを全部達成 <b>+${DAILY_BONUS}pt</b>`,'','ボーナス')}
+  for(const a of ACH){
+    if(PROF.ach[a.id])continue;let ok=false;try{ok=!!a.test(e)}catch(_){ok=false}
+    if(ok){PROF.ach[a.id]=Date.now();addPoints(a.pts);toast(`${a.name} <b>+${a.pts}pt</b>`,'ach','実績解除')}
+  }
+  saveProfile();
+  if(!$('#homeSheet').hidden)renderHome();
+}
+async function saveProfile(){
+  if(!store||!profReady)return;if(profSaving){profDirty=true;return}
+  profSaving=true;try{do{profDirty=false;await store.saveProfile(clone(PROF))}while(profDirty)}catch(e){}profSaving=false;
+}
+/* tournaments */
+function tourLine(){
+  const left=seated().length,lv=Math.max(0,S.blindLv),next=TOUR.mults[Math.min(TOUR.mults.length-1,lv+1)],inLv=TOUR.perLevel-((S.tourHands-1)%TOUR.perLevel)-1;
+  return `<div class="tline">トーナメント　レベル<b>${lv+1}</b>・残り<b>${left}</b>人・${lv+1<TOUR.mults.length?`あと<b>${inLv+1}</b>ハンドで ${Math.round(20*next)}/${Math.round(40*next)}`:'最終レベル'}</div>`;
+}
+function settleTour(){
+  const busted=S.players.filter(p=>!p.out&&p.stack<=0).sort((a,b)=>b.startStack-a.startStack);
+  const alive=S.players.filter(p=>!p.out&&p.stack>0);
+  busted.forEach((p,i)=>{p.out=true;p.place=alive.length+1+i;log(`${p.name} が${p.place}位で敗退`,'sys')});
+  const me=S.players[0];
+  if(me.out)return {place:me.place};
+  if(alive.length===1){me.place=1;log('あなたが優勝しました','win');return {place:1}}
+  return null;
+}
+function finishTour(fin){
+  const strong=(S.level||SET.level)==='strong',base=TOUR.pts[fin.place-1]||0,pts=Math.round(base*(strong?1.5:1));
+  const before=PROF.points;
+  const ev={kind:'tour',tour:true,place:fin.place,strong};
+  if(profReady){addPoints(pts);processEvent(ev)}
+  else{PEND.push(ev);PROF.points+=pts}
+  const rk=RANKS[rankOf(PROF.points)],nx=RANKS[rankOf(PROF.points)+1];
+  $('#tourBody').innerHTML=`<div class="place ${fin.place===1?'win':''}">${fin.place===1?'優勝':fin.place+'位'}</div>
+    <div class="sub">${S.tourHands}ハンド・レベル${S.blindLv+1}まで　CPU ${strong?'強い':'ふつう'}</div>
+    <div class="earn"><div><span>順位ポイント${strong?'（強いCPUで1.5倍）':''}</span><b>+${pts}pt</b></div>
+      <div><span>段位</span><b>${rk[0]}・${fmt(PROF.points)}pt</b></div>
+      ${nx?`<div class="bar"><i style="width:${Math.min(100,(PROF.points-rk[1])/(nx[1]-rk[1])*100).toFixed(1)}%"></i></div><div><span class="muted">${nx[0]}まであと ${fmt(nx[1]-PROF.points)}pt</span></div>`:''}</div>
+    <div class="acts"><button class="btn pri" data-act="tour" type="button">もう一度挑戦</button><button class="btn" data-act="home" type="button">ロビーへ</button><button class="btn" data-act="free" type="button">フリープレイ</button></div>`;
+  $('#tourSheet').hidden=false;
+}
+/* lobby */
+function openHome(){ensureDaily();$('#homeSheet').hidden=false;renderHome()}
+function renderHome(){
+  ensureDaily();
+  const ri=rankOf(PROF.points),rk=RANKS[ri],nx=RANKS[ri+1],t=PROF.tours,strong=SET.level==='strong';
+  const pct=nx?Math.min(100,(PROF.points-rk[1])/(nx[1]-rk[1])*100):100;
+  const inTour=S.mode==='tour'&&!(S.pending&&S.pending.type==='tourEnd');
+  const ms=PROF.daily.list.map(m=>{const M=MISSIONS[m.k];return `<div class="mrow ${m.done?'done':''}"><span class="t">${M.text(m.arg)}</span><span class="r">${m.done?'達成':`${Math.min(m.prog,M.n)}/${M.n}`}　+${MISSION_PTS}pt</span><div class="bar g"><i style="width:${Math.min(100,m.prog/M.n*100)}%"></i></div></div>`}).join('');
+  const got=ACH.filter(a=>PROF.ach[a.id]).length;
+  $('#homeBody').innerHTML=`
+  <div class="rankcard"><div class="rk-top"><span class="rk-name">${rk[0]}</span><span class="rk-pts">${fmt(PROF.points)} pt</span><span class="rk-streak">連続 <b>${PROF.streak.count}</b>日（最高 ${PROF.streak.best}日）</span></div>
+    <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div><div class="rk-next">${nx?`${nx[0]}まであと ${fmt(nx[1]-PROF.points)}pt`:'最高段位です'}</div></div>
+  <div class="modes">
+    ${inTour?`<button class="mode pri" data-act="resume" type="button"><b>トーナメントを続ける</b><span>レベル${S.blindLv+1}・残り${seated().length}人</span></button>`:
+    `<button class="mode pri" data-act="tour" type="button"><b>トーナメント</b><span>5人・各${fmt(TOUR.stack)}チップ。${TOUR.perLevel}ハンドごとにベット額が上がり、最後の1人が優勝。</span><em>優勝 +${Math.round(TOUR.pts[0]*(strong?1.5:1))}pt${strong?'（CPU 強い：1.5倍）':''}</em></button>`}
+    <button class="mode" data-act="${S.mode==='free'&&!inTour?'resume':'free'}" type="button"><b>フリープレイ</b><span>チップが尽きても自動で補充。収支を記録しながら練習。</span><em>${S.mode==='free'?'続ける':'始める'}</em></button>
+  </div>
+  <div class="sec2"><h3>今日のミッション</h3><div class="mlist">${ms}<div class="mrow bonus ${PROF.daily.bonus?'done':''}"><span class="t">3つすべて達成でボーナス</span><span class="r">${PROF.daily.bonus?'達成':''}　+${DAILY_BONUS}pt</span></div></div>
+    <p class="muted">日付が変わると新しいミッションになります。</p></div>
+  <div class="sec2"><h3>トーナメント成績</h3><div class="tstats"><span>参加 <b>${t.played}</b></span><span>優勝 <b>${t.wins}</b></span><span>3位以内 <b>${t.top3}</b></span><span>最高 <b>${t.best?t.best+'位':'—'}</b></span></div></div>
+  <div class="sec2"><h3>実績　${got} / ${ACH.length}</h3><div class="achgrid">${ACH.map(a=>`<div class="ach ${PROF.ach[a.id]?'got':''}"><b>${a.name}</b><span>${a.desc}</span><i>+${a.pts}pt</i></div>`).join('')}</div></div>
+  <p class="muted">CPUの強さは設定で変えられます（いまは「${strong?'強い':'ふつう'}」）。</p>`;
+}
+
+/* ---------- how to play / rules ---------- */
+let HTAB='play',HGAME='LHE';
+const MC=str=>str.split(' ').map(t=>{const r=t.slice(0,-1),su='cdhs'.indexOf(t.slice(-1));return `<span class="mc s${su}">${r==='T'?'10':r}${SUITS[su]}</span>`}).join('');
+const EX=rows=>`<div class="ex">${rows.map(([tag,cards,note])=>`<div><span class="tag">${tag}</span>${MC(cards)}${note?`<span class="muted">${note}</span>`:''}</div>`).join('')}</div>`;
+const LIMIT_BOARD='リミット 20/40。ブラインド 10/20。プリフロップとフロップは20単位、ターンとリバーは40単位。';
+const LIMIT_STUD='リミット 20/40。全員アンティ 3。3rdストリートはブリングイン 5（20へのコンプリートも可）、3rdと4thは20単位、5th〜7thは40単位。';
+const LIMIT_DRAW='リミット 20/40。ブラインド 10/20。最初のベットラウンドと1回目のドロー後は20単位、2回目と3回目のドロー後は40単位。';
+const FLOW_BOARD='手札が配られる → ベット（プリフロップ） → ボードに3枚（フロップ） → ベット → 1枚（ターン） → ベット → 1枚（リバー） → ベット → ショーダウン';
+const FLOW_STUD='伏せ札2枚＋表向き1枚（3rd） → ベット → 表向き1枚ずつ（4th・5th・6th） → それぞれベット → 伏せ札1枚（7th） → ベット → ショーダウン。最後は表4枚・伏せ3枚の計7枚。';
+const FLOW_DRAW='手札が配られる → ベット → 1回目の交換 → ベット → 2回目の交換 → ベット → 3回目の交換 → ベット → ショーダウン。交換は0〜全部まで自由で、0枚は「スタンドパット」。';
+const RULES={
+LHE:{facts:[['手札','2枚（自分だけが見る）'],['ボード','5枚（全員で共有）'],['役の作り方','手札とボードの7枚から、好きな5枚'],['勝ち','一番強いハイハンド（ポーカーの役）'],['ベット',LIMIT_BOARD],['進行',FLOW_BOARD]],
+  ex:[['最強','As Ks Qs Js Ts','ロイヤルフラッシュ'],['よくある勝ち手','Ah Kd Ac 7s 2h','Aのワンペア・キッカーK']],
+  tips:['ボードだけで役ができているとき、手札を使わなくても構いません（「ボードをプレイ」）。','ミックスの入口のゲーム。強いCPUは、レイズしてきた相手を強い手と読んできます。']},
+O8:{facts:[['手札','4枚'],['ボード','5枚'],['役の作り方','必ず手札から2枚＋ボードから3枚（ちょうど）'],['勝ち','ポットをハイとローで半分ずつ'],['ローの条件','8以下のバラバラの5枚（Aはロー扱い）。条件を満たす人がいなければハイが総取り'],['ベット',LIMIT_BOARD],['進行',FLOW_BOARD]],
+  ex:[['最強のロー','Ac 2d 3h 4s 5c','ホイール。ストレートでもあるのでハイにも強い'],['ローの比較','7d 5c 4h 3s 2c','は 7c 6d 3h 2s Ac に勝つ（上から比べて5＜6）']],
+  tips:['ボードに8以下のカードが3枚以上出ないとローは成立しません。','ハイとローで、手札の別の2枚を使っても構いません。','同じローの人がいると、ポットの1/4しか取れないこと（クォーター）があります。'],
+  common:'手札4枚のうちちょうど2枚を使うのがホールデムとの一番の違いです。ボードに♠が4枚あっても、手札に♠が2枚なければフラッシュになりません。'},
+RAZZ:{facts:[['カード','7枚（スタッド形式、ボードなし）'],['役の作り方','7枚から一番低い5枚'],['勝ち','一番低いロー（A-5方式）。条件なし、必ず誰かが勝つ'],['A','いつもロー（1扱い）'],['ストレートとフラッシュ','関係なし（数えない）'],['ペア','悪い（ペアがない手に負ける）'],['ブリングイン','表向きカードが一番高い人（Kが最高）。同じ数字ならスートが強い人（♠＞♥＞♦＞♣）'],['先に打つ人','4th以降は、表向きカードが一番低い人から'],['ベット',LIMIT_STUD],['進行',FLOW_STUD]],
+  ex:[['最強','Ac 2d 3h 4s 5c','ホイール'],['比べ方','8s 6d 4h 3c 2d','は 8c 7d 3h 2s Ac に勝つ（上から比べて6＜7）']],
+  tips:['相手の表向きカードが高いほど、相手は弱いと読めます。','他の人に見えている低いカードは、自分にはもう来ません（デッドカード）。'] },
+STUD:{facts:[['カード','7枚（伏せ3枚・表4枚）'],['役の作り方','7枚から好きな5枚'],['勝ち','一番強いハイハンド'],['ブリングイン','表向きカードが一番低い人（Aは高い扱い）。同じ数字ならスートが弱い人（♣＜♦＜♥＜♠）'],['先に打つ人','4th以降は、表向きカードで一番強い役を見せている人から'],['オープンペア','4thストリートで誰かの表向き2枚がペアなら、そのラウンドは20か40を選んでベットできる'],['ベット',LIMIT_STUD],['進行',FLOW_STUD]],
+  ex:[['3rdで強い手','Ah As Ad','スリーカード（「ロールアップ」）'],['見えている情報','Kd Kc 7s 2h','表向きにKのペアがある相手は要注意']],
+  tips:['自分の待っているカードが他の人の表に出ていたら、その分だけ完成しにくくなります。'] },
+STUD8:{facts:[['カード','7枚（伏せ3枚・表4枚）'],['役の作り方','ハイとローそれぞれ、7枚から好きな5枚（別々のカードを使ってよい）'],['勝ち','ポットをハイとローで半分ずつ'],['ローの条件','8以下のバラバラの5枚（Aはロー扱い）。いなければハイが総取り'],['ブリングイン','表向きカードが一番低い人（Aは高い扱い）'],['先に打つ人','4th以降は、表向きカードで一番強いハイを見せている人から'],['ベット',LIMIT_STUD+'オープンペアのルールはなし。'],['進行',FLOW_STUD]],
+  ex:[['理想','Ac 2d 3h 4s 5c','ハイ（ストレート）とローを両取り（スクープ）'],['ローの例','8d 6c 4h 2s Ac','8-6ロー']],
+  tips:['Aと低いカードで始まる手が強い。片方しか取れない手は、ポットの半分しか期待できません。'] },
+'27TD':{facts:[['カード','5枚'],['交換','3回'],['勝ち','一番低い手（2-7方式）'],['A','いつもハイ（一番高いカード）'],['ストレートとフラッシュ','数える（持っていると不利）'],['ペア','悪い'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
+  ex:[['最強','7c 5d 4h 3s 2c','「ナンバーワン」。同じスートだとフラッシュで台無し'],['意外な弱さ','Ac 2d 3h 4s 5c','Aハイの手。ストレートでもない'],['比べ方','8c 6d 5h 3s 2c','は 8d 7c 4h 3s 2d に勝つ（上から比べて6＜7）']],
+  tips:['2-3-4-5-6や3-4-5-6-7はストレートになるので負け手。','相手の交換枚数がヒント。交換をやめた（スタンドパット）相手は手が完成しています。'] },
+A5TD:{facts:[['カード','5枚'],['交換','3回'],['勝ち','一番低い手（A-5方式）'],['A','いつもロー（1扱い）'],['ストレートとフラッシュ','関係なし'],['ペア','悪い'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
+  ex:[['最強','Ac 2d 3h 4s 5c','ホイール'],['比べ方','6c 4d 3h 2s Ac','は 6d 5c 3h 2s Ac に勝つ（上から比べて4＜5）']],
+  tips:['2-7とは逆に、Aは最高のカード。ストレートやフラッシュを気にしなくてよいので、2-7より手が作りやすいゲームです。'] },
+BADUGI:{facts:[['カード','4枚'],['交換','3回'],['勝ち','一番いいバドゥーギ（下の比べ方）'],['バドゥーギとは','4枚すべてスートも数字も違う手'],['A','いつもロー（1扱い）'],['比べ方','①使える枚数が多い方が勝ち（4枚のバドゥーギ＞3枚＞2枚）②同じ枚数なら、一番高いカードから比べて低い方が勝ち'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
+  ex:[['最強','Ac 2d 3h 4s','4-3-2-A'],['4枚','Kc 2d 3h 4s','Kでも4枚あれば、どんな3枚の手にも勝つ'],['3枚','Ac 2c 3h 4s','♣が2枚あるので、使えるのは3枚の 4-3-A']],
+  tips:['同じスートや同じ数字は1枚しか数えません。','3回目の交換後に3枚のままだと、4枚のバドゥーギには勝てません。'] },
+PLO:{facts:[['手札','4枚'],['ボード','5枚'],['役の作り方','必ず手札から2枚＋ボードから3枚'],['勝ち','一番強いハイハンド'],['ベット','ポットリミット。ブラインド 10/20。ベット・レイズの上限は「コールした後のポットの額」まで。最小ベットは20、最小レイズは直前のレイズ額と同じだけ上乗せ'],['進行',FLOW_BOARD]],
+  ex:[['強い手札','Ah As Kh Ks','ダブルスーテッドのAAKK'],['よくある失敗','Ah 7c 6d 2s','ボードに♥4枚でも、手札の♥が1枚ではフラッシュにならない']],
+  tips:['4枚から2枚の組み合わせが6通りあるので、ホールデムより手が強くなりがち。ナッツ（その時点で最強の手）でないと危険です。','画面のスライダーと「最小／½ポット／ポット」ボタンで額を決めます。'] },
+BADEUCY:{facts:[['カード','5枚'],['交換','3回'],['勝ち','ポットを2-7ローとバドゥーギで半分ずつ'],['2-7ロー','5枚すべてで判定。Aはハイ、ストレートとフラッシュは不利'],['バドゥーギ','5枚から一番いい4枚で判定。Aはハイ（一番高い）'],['最強のカード','2（どちらでも一番いい）'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
+  ex:[['理想','2c 3d 4h 5s 7c','2-7は7-5-4-3-2、バドゥーギは5-4-3-2で両取り'],['分かれる例','2c 3d 4h 7s 8s','2-7は8-7-4-3-2、バドゥーギは7-4-3-2']],
+  tips:['両方に効くカードは2〜7。Aは両方で悪いカードです。'] },
+BADACEY:{facts:[['カード','5枚'],['交換','3回'],['勝ち','ポットをA-5ローとバドゥーギで半分ずつ'],['A-5ロー','5枚すべてで判定。Aはロー、ストレートとフラッシュは関係なし'],['バドゥーギ','5枚から一番いい4枚で判定。Aはロー'],['最強のカード','A（どちらでも一番いい）'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
+  ex:[['理想','Ac 2d 3h 4s 5c','A-5は5-4-3-2-A、バドゥーギは4-3-2-Aで両取り'],['分かれる例','Ac 2c 3h 4s 6d','A-5は6-4-3-2-A、バドゥーギは6-4-3-A（♣が2枚なので2を外す）']],
+  tips:['バデューシーとの違いはAの扱い。こちらはAが最強のカードです。'] },
+};
+function helpAim(){return `
+  <div class="sec2"><h3>このゲームの目的</h3>
+    <p class="lead">CPU 4人とチップを取り合い、自分のチップを増やすことが目的です。</p>
+    <p>最初のチップは2,000。1ハンドごとにポット（全員が賭けたチップ）を取り合います。チップが無くなったら自動で2,000を足して続けられます。どれだけ勝てているかは「収支」で確認できます。</p></div>
+  <div class="sec2"><h3>1ハンドの勝ち方は2通り</h3>
+    <ol><li><b>ショーダウンで一番いい手を見せる</b>：最後まで残った人で手を比べ、一番いい手の人がポットを取ります。</li>
+    <li><b>相手を全員降ろす</b>：ベットやレイズで相手が全員フォールドすれば、手を見せずにポットを取れます（ブラフ）。</li></ol>
+    <p class="muted">「一番いい手」が何かはゲームごとに違います。高い役が勝つゲーム、低い手が勝つゲーム、ポットを高い手と低い手で半分ずつ分けるゲームがあります。</p></div>
+  <div class="sec2"><h3>ミックスゲームとは</h3>
+    <p>決まったハンド数ごとに、遊ぶポーカーの種類が入れ替わる形式です。このアプリでは11種類を順番に遊びます。1つのゲームが得意でも、全部で勝てないとトータルでは勝てません。</p>
+    <p>目標は、苦手なゲームを減らして全体で勝ち越すこと。「収支」のゲーム別成績で得意・苦手が分かります。慣れてきたら、設定でCPUを「強い」にして挑戦してください。</p></div>`}
+function helpPlay(){return `
+  <div class="sec2"><h3>2つのモード</h3><ul>
+    <li><b>トーナメント</b>：5人が ${fmt(TOUR.stack)} チップずつで始め、${TOUR.perLevel}ハンドごとにベット額が上がります。チップが無くなった人から脱落し、最後の1人が優勝。順位に応じてポイントがもらえます。</li>
+    <li><b>フリープレイ</b>：チップが無くなっても自動で補充される練習用。収支が記録されます。</li></ul>
+    <p class="muted">左上のタイトルを押すとロビーが開き、モードの選択、段位、今日のミッション、実績を確認できます。</p></div>
+  <div class="sec2"><h3>段位・ミッション・実績</h3><ul>
+    <li><b>段位</b>：ポイントを貯めると ルーキー → ブロンズ → シルバー → ゴールド → プラチナ → ダイヤモンド → マスター → レジェンド と上がります。ポイントは減りません。</li>
+    <li><b>デイリーミッション</b>：毎日3つ出るお題。達成するとポイント、3つ全部でボーナス。日付が変わると新しいお題になります。</li>
+    <li><b>実績</b>：ゲームごとの名場面（ラズのホイール、バドゥーギ完成、ハイローの総取りなど）を集めます。</li>
+    <li><b>連続プレイ</b>：毎日1ハンド以上遊ぶと連続日数が伸びます。</li></ul></div>
+  <div class="sec2"><h3>画面の見方</h3><ul>
+    <li><b>上の列</b>：ゲームのローテーション。金色が今のゲーム。</li>
+    <li><b>相手の席</b>：名前・チップ・直前のアクション・カード。<b>D</b>はボタン（ディーラー役）、<b>SB／BB</b>はブラインド、<b>BI</b>はブリングイン。</li>
+    <li><b>中央</b>：ゲーム名、いまの段階（金色）、ポット、ボード、ドローゲームでは山札の残り枚数。</li>
+    <li><b>下</b>：あなたの手札と、いまの役。その下が操作ボタン。</li></ul></div>
+  <div class="sec2"><h3>自分の番でできること</h3><ul>
+    <li><b>フォールド</b>：降りる。そのハンドはもう勝てませんが、それ以上チップは失いません。</li>
+    <li><b>チェック</b>：誰もベットしていないとき、賭けずに次へ回す。</li>
+    <li><b>コール</b>：今のベット額に合わせる。</li>
+    <li><b>ベット／レイズ</b>：賭ける・額を上げる。リミットのゲームでは額が決まっているので、ボタンを押すだけです。PLOではスライダーか「最小／½ポット／ポット」で額を選びます。</li></ul>
+    <p class="muted">パソコンでは <kbd>F</kbd> フォールド、<kbd>C</kbd> チェック／コール、<kbd>R</kbd> ベット／レイズ、<kbd>Enter</kbd> 交換の確定・次のハンドへ。</p></div>
+  <div class="sec2"><h3>ドローゲームの交換</h3>
+    <p>交換の番になったら、捨てたいカードをタップして選び（上に浮きます）、「◯枚交換する」を押します。何も選ばずに押すとスタンドパット（交換しない）です。相手の席には、毎回の交換枚数が「交換 3・1・パット」のように残ります。</p></div>
+  <div class="sec2"><h3>スタッドゲームのカード</h3>
+    <p>自分の手札のうち、少し色が濃いカードは伏せ札で、自分にしか見えません。白いカードは表向きで全員に見えています。表向きカードが一番低い（ラズでは一番高い）人は、最初に「ブリングイン 5」か「コンプリート 20」を選びます。</p></div>
+  <div class="sec2"><h3>ハンドが終わったら</h3>
+    <p>勝った人と手の内容が表示されます。「次のハンドへ」で続けます。設定で「自動で次のハンドへ」をオンにすると、少し待って自動で進みます。</p></div>
+  <div class="sec2"><h3>ボタンと設定</h3><ul>
+    <li><b>収支</b>：このセッションと通算の成績、ゲーム別の成績、推移グラフ。</li>
+    <li><b>ログ</b>（スマホ）：ハンドの流れの記録。パソコンでは右側に常に表示。</li>
+    <li><b>設定</b>：CPUの強さ、ローテーションに入れるゲーム、1ゲームのハンド数、CPUの速さ、自動進行、やり直し。</li></ul></div>`}
+function helpRules(){return `
+  <div class="sec2"><h3>ハイハンドの強さ（高い役が勝つゲーム）</h3>
+    <div class="tscroll"><table class="rtab"><tbody>
+    ${[['ロイヤルフラッシュ','As Ks Qs Js Ts','同じスートのA-K-Q-J-10'],['ストレートフラッシュ','9h 8h 7h 6h 5h','同じスートの連続5枚'],['フォーカード','Qc Qd Qh Qs 4c','同じ数字4枚'],['フルハウス','Jc Jd Jh 6s 6c','スリーカード＋ペア'],['フラッシュ','Kd Td 7d 5d 2d','同じスート5枚'],['ストレート','8c 7d 6h 5s 4c','連続5枚。A-2-3-4-5も可（一番低い）'],['スリーカード','7c 7d 7h Ks 2c','同じ数字3枚'],['ツーペア','Ac Ad 9h 9s 3c','ペア2組'],['ワンペア','Tc Td Ah 8s 4c','ペア1組'],['ハイカード','Ac Jd 8h 6s 3c','役なし。高いカードから比べる']].map((r,i)=>`<tr><td>${i+1}</td><td class="nm2">${r[0]}</td><td>${MC(r[1])}<br><span class="muted">${r[2]}</span></td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="muted">同じ役なら、役を作るカード → 残りのカード（キッカー）の順に数字で比べます。スートに強弱はなく、完全に同じなら引き分けでポットを分けます。</p></div>
+  <div class="sec2"><h3>ローの数え方（低い手が勝つゲーム）</h3>
+    <p>どのローも、<b>5枚のうち一番高いカードから順に比べて、低い方が勝ち</b>です。違いは A とストレート・フラッシュの扱いです。</p>
+    <div class="tscroll"><table class="rtab"><thead><tr><th></th><th>方式</th><th>中身</th></tr></thead><tbody>
+      <tr><td></td><td class="nm2">A-5ロー</td><td>Aは1（一番低い）。ストレートとフラッシュは関係なし。最強は ${MC('Ac 2d 3h 4s 5c')}<br><span class="muted">ラズ、A-5トリプルドロー、バデーシー</span></td></tr>
+      <tr><td></td><td class="nm2">8以下のロー</td><td>A-5ローと同じ数え方で、8以下のバラバラの5枚がないとローにならない<br><span class="muted">オマハ ハイロー、スタッド ハイロー</span></td></tr>
+      <tr><td></td><td class="nm2">2-7ロー</td><td>Aは一番高い。ストレートとフラッシュは役として数える（不利）。最強は ${MC('7c 5d 4h 3s 2c')}<br><span class="muted">2-7トリプルドロー、バデューシー</span></td></tr>
+      <tr><td></td><td class="nm2">バドゥーギ</td><td>4枚。スートも数字もすべて違う4枚が最強の形。枚数が多い方が勝ち、同じ枚数なら低い方が勝ち<br><span class="muted">バドゥーギ、バデューシー、バデーシー</span></td></tr>
+    </tbody></table></div></div>
+  <div class="sec2"><h3>ベットのルール</h3><ul>
+    <li><b>リミット（固定額）</b>：ベットとレイズの額は決まっています（フリープレイでは20か40）。序盤は小さい額、後半は2倍の額です。トーナメントではレベルが上がるたびに、ブラインド・アンティを含むすべての額が同じ倍率で上がります。</li>
+    <li><b>キャップ</b>：1ラウンドに「ベット＋3レイズ」まで。2人だけになったら上限なし。</li>
+    <li><b>ショートのオールイン</b>：リミットでベットの半分未満、PLOで最小レイズ未満のオールインはレイズに数えません。すでに打った人は再レイズできません。</li>
+    <li><b>ポットリミット</b>（PLOのみ）：上限は「コールした後のポットの額」まで。</li>
+    <li><b>ブラインド</b>：ボタンの左がSB 10、その左がBB 20を最初に出します。ボタンは毎ハンド1つずつ左へ。</li>
+    <li><b>アンティとブリングイン</b>（スタッド系）：全員がアンティ 3を出し、表向きカードで決まった1人がブリングイン 5（または20にコンプリート）を出します。</li></ul></div>
+  <div class="sec2"><h3>ポットの分け方</h3><ul>
+    <li><b>ハイロー</b>：ハイとローで半分ずつ。ローがいなければハイが全部。端数はハイ側へ。</li>
+    <li><b>バデューシー／バデーシー</b>：2-7（またはA-5）とバドゥーギで半分ずつ。端数はバドゥーギ側へ。</li>
+    <li><b>引き分け</b>：同じ手の人で等分。割り切れない端数は、ボタンの左に近い人から1枚ずつ。</li>
+    <li><b>サイドポット</b>：誰かがオールインすると、その人が取れるのは自分が出した額までのポット（メインポット）。それ以上の分は残りの人で取り合います。</li></ul></div>
+  <div class="sec2"><h3>カードの配り方</h3><ul>
+    <li>毎ハンド52枚のデッキをシャッフルし直します。</li>
+    <li>各ストリートの前と、ドローの交換の前に1枚ずつバーン（使わずに伏せて置く）します。</li>
+    <li>ドローで山札が足りなくなったら、残りの山札を配ったあと、捨て札をシャッフルして新しい山札にします。<b>いま交換している人のその回の捨て札とバーンカードは混ぜません。</b>前の回に自分が捨てたカードが戻ってくることはあります。</li></ul></div>`}
+function helpGames(){
+  const g=GAMES.find(x=>x.id===HGAME)||GAMES[0],R=RULES[g.id];
+  return `<div class="gpick" role="group" aria-label="ゲームを選ぶ">${GAMES.map(x=>`<button type="button" data-act="hgame" data-game="${x.id}" aria-pressed="${x.id===g.id}" title="${x.name}">${x.chip}</button>`).join('')}</div>
+  <div class="sec2"><div class="gtitle"><b>${g.code}</b><span>${g.name}</span></div>
+    <p>${g.hint}</p>
+    ${R.common?`<p class="muted">${R.common}</p>`:''}
+    <dl class="facts">${R.facts.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>
+  <div class="sec2"><h4>手の例</h4>${EX(R.ex)}</div>
+  <div class="sec2"><h4>ポイント</h4><ul>${R.tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+}
+function renderHelp(){
+  ['play','rules','games'].forEach(t=>$('#ht-'+t).setAttribute('aria-selected',String(HTAB===t)));
+  $('#helpBody').innerHTML=HTAB==='play'?helpPlay():HTAB==='rules'?helpRules():helpGames();
+}
+function openHelp(tab,game){
+  if(tab)HTAB=tab;if(game)HGAME=game;else if(S.g&&!tab)HGAME=S.g.id;
+  $('#helpSheet').hidden=false;renderHelp();
+}
+let HOME_AFTER_HELP=false;
+function closeHelp(){$('#helpSheet').hidden=true;try{localStorage.setItem('ngm-help-seen','1')}catch(e){}if(HOME_AFTER_HELP){HOME_AFTER_HELP=false;openHome()}}
+function maybeFirstHelp(){let seen=false;try{seen=!!localStorage.getItem('ngm-help-seen')}catch(e){seen=true}if(!seen){openHelp('play');HOME_AFTER_HELP=true}else openHome()}
+initStore();
+maybeFirstHelp();
+main();
+</script>
+</body>
+</html>
