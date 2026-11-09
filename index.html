@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MIX Game Poker</title>
-<meta name="description" content="HORSE・2-7/A-5トリプルドロー・バドゥーギ・PLO・バデューシー・バデーシーの11種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
+<meta name="description" content="HORSE・8ゲーム・2-7/A-5トリプルドロー・バドゥーギ・NLホールデム・PLO・バデューシー・バデーシーの12種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
 <meta name="theme-color" content="#120d0c">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:title" content="MIX Game Poker">
-<meta property="og:description" content="HORSE・2-7/A-5トリプルドロー・バドゥーギ・PLO・バデューシー・バデーシーの11種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
+<meta property="og:description" content="HORSE・8ゲーム・2-7/A-5トリプルドロー・バドゥーギ・NLホールデム・PLO・バデューシー・バデーシーの12種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
 <meta property="og:url" content="https://mix-game-poker.vercel.app/">
 <meta property="og:image" content="https://mix-game-poker.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
@@ -62,7 +62,9 @@ header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
 .iconbtn:hover{border-color:var(--brass-dim)}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px;align-items:start}
 @media(max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}}
-.table{background:radial-gradient(ellipse at 50% 42%,var(--felt-2),var(--felt) 72%);border:10px solid var(--rail);border-radius:30px;box-shadow:inset 0 0 0 1px var(--brass-dim),inset 0 0 70px rgba(0,0,0,.45),0 12px 30px rgba(0,0,0,.5);padding:14px;display:grid;gap:12px;min-width:0}
+.table.fam-stud{--felt:#173a2b;--felt-2:#1f4a37;--felt-3:#112c20}
+.table.fam-draw{--felt:#1b2b48;--felt-2:#233a5e;--felt-3:#141f36}
+.table{position:relative;background:radial-gradient(ellipse at 50% 42%,var(--felt-2),var(--felt) 72%);border:10px solid var(--rail);border-radius:30px;box-shadow:inset 0 0 0 1px var(--brass-dim),inset 0 0 70px rgba(0,0,0,.45),0 12px 30px rgba(0,0,0,.5);padding:14px;display:grid;gap:12px;min-width:0}
 .opps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .seat,.me{background:rgba(16,9,8,.55);border:1px solid rgba(211,171,87,.16);border-radius:10px;padding:8px;display:grid;gap:6px;min-width:0;transition:border-color .2s,box-shadow .2s}
 .seat.acting,.me.acting{border-color:var(--brass);box-shadow:0 0 0 2px rgba(211,171,87,.3)}
@@ -92,6 +94,22 @@ button.brand:focus-visible{outline:2px solid var(--ink);outline-offset:3px;borde
 .toast.ach .k{background:var(--good)}
 .toast.rank{border-color:var(--good)}
 @keyframes tin{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.cdown{font-size:11px;font-weight:700;color:var(--brass);border:1px solid var(--brass-dim);border-radius:10px;padding:1px 8px;white-space:nowrap;align-self:center}
+.cdown.last{background:var(--brass);color:var(--on-brass);border-color:var(--brass)}
+.intro{position:absolute;inset:0;z-index:5;display:grid;place-items:center;background:rgba(10,6,5,.55);border-radius:inherit;cursor:pointer;animation:ifade .25s ease-out;padding:16px}
+.icard{display:grid;justify-items:center;gap:6px;text-align:center;padding:22px 26px;border-radius:16px;background:var(--rail);border:2px solid var(--brass);box-shadow:0 18px 40px rgba(0,0,0,.6);max-width:min(420px,100%);animation:ipop .3s ease-out}
+.intro.fam-stud .icard{border-color:#5fae84}.intro.fam-draw .icard{border-color:#7fa2e0}
+.ilabel{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.icode{font-family:var(--f-display);font-weight:800;font-size:clamp(40px,11vw,64px);line-height:.9;letter-spacing:.04em;text-transform:uppercase;color:var(--brass)}
+.iname{font-size:14px;font-weight:700}
+.icard ul{list-style:none;margin:6px 0 2px;padding:0;display:grid;gap:4px;font-size:13.5px}
+.icard li::before{content:'・';color:var(--brass)}
+.ifam{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--on-brass);background:var(--brass);border-radius:3px;padding:1px 8px}
+.intro.fam-stud .ifam{background:#5fae84}.intro.fam-draw .ifam{background:#7fa2e0}
+.ihands{font-size:12px;color:var(--muted)}
+.itap{font-size:11px;color:var(--faint)}
+@keyframes ifade{from{opacity:0}to{opacity:1}}
+@keyframes ipop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
 .tline{font-size:12px;color:var(--brass);font-variant-numeric:tabular-nums}
 .tline b{color:var(--ink);font-weight:700}
 .seat.out{opacity:.35}
@@ -326,6 +344,8 @@ button.brand:focus-visible{outline:2px solid var(--ink);outline-offset:3px;borde
 .panel h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:.05em;color:var(--brass);text-transform:uppercase}
 .panel h3{margin:0 0 6px;font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:500}
 .glist{display:grid;gap:4px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.presets .chipbtn[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--on-brass);font-weight:700}
 .glist label{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:6px;background:rgba(0,0,0,.18);cursor:pointer}
 .glist input{accent-color:var(--brass)}
 .glist b{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;width:64px}
@@ -392,7 +412,8 @@ table.gt{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
     <button class="iconbtn" data-act="settings" type="button">設定</button>
   </header>
   <div class="layout">
-    <section class="table" aria-label="テーブル">
+    <section class="table" id="table" aria-label="テーブル">
+      <div id="introMount"></div>
       <div class="opps" id="opps"></div>
       <div class="center" id="center"></div>
       <div class="me" id="me"></div>
@@ -408,7 +429,7 @@ table.gt{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
     <div class="row"><h3 style="margin:0">CPUの強さ</h3>
       <select id="level"><option value="normal">ふつう</option><option value="strong">強い</option></select></div>
     <div class="note" style="text-align:left;margin-top:-8px">強いCPUは、レイズしてきた相手やドローの交換枚数から手を読み、ブラフやスロープレイも混ぜてきます。強さを変えると、収支の記録は別のセッションとして分かれます。トーナメント中に変えた場合は、次のトーナメントから反映されます。</div>
-    <div><h3>ローテーションに入れるゲーム</h3><div class="glist" id="glist"></div></div>
+    <div><h3>ローテーションに入れるゲーム</h3><div class="presets" id="presets" role="group" aria-label="ゲームのセット"></div><div class="glist" id="glist"></div></div>
     <div class="row"><h3 style="margin:0">1ゲームのハンド数</h3>
       <select id="handsPer"><option value="3">3</option><option value="5">5</option><option value="8">8</option><option value="10">10</option></select></div>
     <div class="row"><h3 style="margin:0">CPUの速さ</h3>
@@ -478,6 +499,7 @@ const GAMES=[
  {id:'27TD',code:'2-7 TD',chip:'2-7',name:'2-7 トリプルドロー',fam:'draw',size:5,hint:'5枚のロー。Aはハイ、ストレートとフラッシュは不利。最強は7-5-4-3-2。交換は3回。'},
  {id:'A5TD',code:'A-5 TD',chip:'A-5',name:'A-5 トリプルドロー',fam:'draw',size:5,hint:'5枚のロー。Aはロー、ストレートとフラッシュは関係なし。最強はA-2-3-4-5（ホイール）。交換は3回。'},
  {id:'BADUGI',code:'Badugi',chip:'BDG',name:'バドゥーギ',fam:'draw',size:4,hint:'4枚すべてスートもランクも違えばバドゥーギ。低いほど強く、Aはロー。交換は3回。'},
+ {id:'NLHE',code:"NL Hold'em",chip:'NL',name:'ノーリミット ホールデム',fam:'board',hole:2,nl:true,hint:'手札2枚とボード5枚から最強の5枚を作るハイゲーム。ベット額は自由で、いつでもオールインできます。'},
  {id:'PLO',code:'PLO',chip:'PLO',name:'ポットリミット オマハ',fam:'board',hole:4,pot:true,hint:'手札4枚から必ず2枚使うハイゲーム。ベットはポットの額まで。'},
  {id:'BADEUCY',code:'Badeucy',chip:'BDC',name:'バデューシー',fam:'draw',size:5,hint:'5枚で2-7ローとバドゥーギ（Aはハイ）を同時に競い、半分ずつ分ける。最強のカードは2。交換は3回。'},
  {id:'BADACEY',code:'Badacey',chip:'BDA',name:'バデーシー',fam:'draw',size:5,hint:'5枚でA-5ローとバドゥーギ（どちらもAはロー）を同時に競い、半分ずつ分ける。最強のカードはA。交換は3回。'},
@@ -551,7 +573,7 @@ function badugi(cs,aceHigh){
 }
 function evaluate(gid,cards,board){
   switch(gid){
-    case 'LHE':return [{t:'high',v:best5(cards.concat(board),hi,false)}];
+    case 'LHE':case 'NLHE':return [{t:'high',v:best5(cards.concat(board),hi,false)}];
     case 'PLO':return [{t:'high',v:omahaBest(cards,board,hi,false)}];
     case 'O8':{const l=omahaBest(cards,board,low8,true);return [{t:'high',v:omahaBest(cards,board,hi,false)},{t:'low8',v:l===null?null:-l}]}
     case 'STUD':return [{t:'high',v:best5(cards,hi,false)}];
@@ -661,36 +683,37 @@ function dealCard(who){if(!S.deck.length)reshuffle(who);return S.deck.pop()}
 function burn(){if(!S.deck.length)reshuffle(null);S.burned.push(S.deck.pop())}
 function resetStreet(){S.currentBet=0;S.raises=0;S.lastRaise=bbAmt();S.openPair=false;S.doubled=false;S.players.forEach(p=>{p.streetBet=0;p.acted=false;p.capped=false})}
 /* Betting structure per game, as used in mixed-game rooms:
-   limit games: 20/40 fixed limit, bet + 3 raises cap (uncapped heads-up), all-in < half a bet does not reopen raising
+   limit games: 20/40 fixed limit, bet + 3 raises cap, also heads-up (as in tournaments and online play), all-in < half a bet does not reopen raising
    stud games: ante 3, bring-in 5 (bring-in may complete to 20), Stud high only: open pair on 4th street allows the 40 bet
    draw games: blinds 10/20, small bet before and after the 1st draw, big bet after the 2nd and 3rd draws
    PLO: pot limit, blinds 10/20, min raise = last raise, short all-in does not reopen */
 const stake=()=>S.mult||1;
 const sbAmt=()=>Math.round(10*stake()),bbAmt=()=>Math.round(20*stake()),smallBet=()=>Math.round(20*stake()),bigBet=()=>Math.round(40*stake()),anteAmt=()=>Math.round(3*stake()),bringAmt=()=>Math.round(5*stake());
 function limitUnit(){return S.doubled?bigBet():S.unit}
-function maxBets(){return live().length<=2?Infinity:4}
+function maxBets(){return 4}
 const openPairOption=()=>S.g.id==='STUD'&&S.street===1&&S.openPair&&!S.doubled;
 
 /* ---------- betting ---------- */
 function legal(p){
   const g=S.g,raw=S.currentBet-p.streetBet,toCall=Math.min(Math.max(raw,0),p.stack);
   const others=S.players.some(o=>o!==p&&!o.folded&&!o.allIn);
-  const L={toCall,canCheck:raw<=0,isPot:!!g.pot,canRaise:false,pot:totalPot()};
+  const L={toCall,canCheck:raw<=0,isPot:!!(g.pot||g.nl),isNL:!!g.nl,canRaise:false,pot:totalPot()};
   const cap=p.streetBet+p.stack;
   if(p.stack>raw&&others&&!p.capped){
-    if(g.pot){const minTo=S.currentBet===0?bbAmt():S.currentBet+Math.max(S.lastRaise,bbAmt());const maxTo=S.currentBet+totalPot()+Math.max(raw,0);
+    if(g.pot||g.nl){const minTo=S.currentBet===0?bbAmt():S.currentBet+Math.max(S.lastRaise,bbAmt());const maxTo=g.nl?cap:S.currentBet+totalPot()+Math.max(raw,0);
       L.minTo=Math.min(minTo,cap);L.maxTo=Math.min(Math.max(maxTo,minTo),cap);L.canRaise=true}
     else if(S.raises<maxBets()){
       const u=limitUnit(),to=S.currentBet===0?u:(S.currentBet<u?u:S.currentBet+u);
       L.raiseTo=Math.min(to,cap);L.canRaise=true;
       if(openPairOption()){const to2=Math.min(S.currentBet+bigBet(),cap);if(to2>L.raiseTo)L.raiseTo2=to2}
-      const mb=maxBets();L.capLeft=mb===Infinity?null:mb-S.raises;
+      L.capLeft=maxBets()-S.raises;
     }
   }
   L.word=S.currentBet===0?'ベット':(g.fam==='stud'&&S.currentBet<S.unit?'コンプリート':'レイズ');
   return L;
 }
 function apply(p,a){
+  const actBefore=S.currentBet,potBefore=totalPot();
   const word=S.currentBet===0?'ベット':(S.g.fam==='stud'&&S.currentBet<S.unit?'コンプリート':'レイズ');
   if(a.type==='call'&&S.currentBet<=p.streetBet)a={type:'check'};
   if(a.type==='fold'){p.folded=true;p.lastAct='フォールド';if(S.g.fam==='draw')S.muck.push(...p.cards)}
@@ -701,14 +724,15 @@ function apply(p,a){
     put(p,a.to-p.streetBet);p.vol=true;
     if(p.streetBet>before){
       const inc=p.streetBet-before;
-      const full=S.g.pot?inc>=Math.max(S.lastRaise,bbAmt()):(p.streetBet>=fullTo||inc*2>=u);
+      const full=(S.g.pot||S.g.nl)?inc>=Math.max(S.lastRaise,bbAmt()):(p.streetBet>=fullTo||inc*2>=u);
       if(openPairOption()&&inc>=bigBet())S.doubled=true;
       S.currentBet=p.streetBet;
-      if(full){if(S.g.pot)S.lastRaise=inc;S.raises++;S.players.forEach(o=>{o.capped=false;if(o!==p)o.acted=false})}
+      if(full){if(S.g.pot||S.g.nl)S.lastRaise=inc;S.raises++;S.players.forEach(o=>{o.capped=false;if(o!==p)o.acted=false})}
       else S.players.forEach(o=>{if(o!==p&&o.acted){o.acted=false;o.capped=true}});
     }
     p.lastAct=(p.allIn?'オールイン ':word+' ')+p.streetBet}
   if(S.street===0&&(a.type==='call'||a.type==='raise'))p.vpip=true;
+  if(a.type==='call'||a.type==='raise')(p.hist||(p.hist=[])).push({st:S.street,t:a.type,open:a.type==='raise'&&(actBefore===0||(S.g.fam==='stud'&&actBefore<S.unit)),three:a.type==='raise'&&S.raises>=3,over:a.type==='raise'&&(p.streetBet-actBefore)>Math.max(potBefore,1)*1.2});
   if(a.type!=='check'){p.tAct=(p.tAct||0)+1;if(a.type==='fold')p.tFold=(p.tFold||0)+1;if(a.type==='raise'){p.tRaise=(p.tRaise||0)+1;p.aggN=(p.aggN||0)+1}}
   p.acted=true;
   log(`${p.name}：${p.lastAct}`);
@@ -769,7 +793,7 @@ function estimate(p,iters){
   }
   return {eq:total/iters,n:opps.length+1};
 }
-const ITERS={LHE:220,PLO:110,O8:110,STUD:150,STUD8:130,RAZZ:150,'27TD':110,BADUGI:130,BADEUCY:100,A5TD:120,BADACEY:100};
+const ITERS={LHE:220,NLHE:220,PLO:110,O8:110,STUD:150,STUD8:130,RAZZ:150,'27TD':110,BADUGI:130,BADEUCY:100,A5TD:120,BADACEY:100};
 /* ---------- strong CPU ----------
    1) reads ranges: each bet/raise an opponent made this hand counts them as up to 3 hands ("beats you as often as N random hands"),
       scaled down for players who raise a lot over the session (bluffers get called lighter)
@@ -777,7 +801,32 @@ const ITERS={LHE:220,PLO:110,O8:110,STUD:150,STUD8:130,RAZZ:150,'27TD':110,BADUG
    3) picks discards by simulating every possible discard instead of a fixed rule
    4) bets for value and protection, semi-bluffs with draws, bluffs when checked to, slow-plays monsters, folds without random crying calls */
 const isStrong=p=>(p.lv||S.level)==='strong';
-function oppWeight(o){const rate=((o.tRaise||0)+2)/((o.tAct||0)+10);const w=Math.max(.5,Math.min(1.5,.2/rate));return 1+w*Math.min(2,.75*(o.aggN||0))}
+/* Range model: every voluntary action narrows an opponent to the top fraction of hands that would take it.
+   Later streets and raises narrow hardest (a river raise ~ top 10%). Players who raise a lot get some slack, never unlimited.
+   Each iteration samples several candidate hands for the opponent (sharing the same runout) and keeps the strongest,
+   so the opponent effectively holds a hand from the top 1/M of what is possible given their visible cards and draws. */
+function lastStreetNo(){return S.g.fam==='stud'?4:3}
+function rangeFrac(o){
+  let f=1;const L=lastStreetNo();
+  for(const h of o.hist||[]){
+    const late=h.st>=2,last=h.st>=L;
+    if(h.t==='call')f*=last?.7:late?.8:.9;
+    else{f*=h.open?(last?.45:late?.55:.7):(last?.22:late?.32:.5);if(h.three)f*=.6;if(h.over)f*=.55}
+  }
+  const rate=((o.tRaise||0)+2)/((o.tAct||0)+10);
+  f=Math.min(1,f*Math.max(1,Math.min(1.7,rate/.22)));
+  return Math.max(.05,f);
+}
+// pick the candidate that ranks highest against the other candidates, half by half
+function strongestOf(evals){
+  const M=evals.length;if(M===1)return 0;let best=0,bs=-1;
+  for(let i=0;i<M;i++){let sc=0;
+    for(let h=0;h<evals[i].length;h++){const vi=evals[i][h].v;
+      for(let j=0;j<M;j++){if(j===i)continue;const vj=evals[j][h].v;
+        if(vi===null){if(vj===null)sc+=.5}else if(vj===null||vi>vj)sc+=1;else if(vi===vj)sc+=.5}}
+    sc+=Math.random()*1e-6;if(sc>bs){bs=sc;best=i}}
+  return best;
+}
 function estimateStrong(p,iters){
   const g=S.g,gid=g.id,others=S.players.filter(o=>o!==p&&!o.folded);
   let opps=others;
@@ -790,15 +839,24 @@ function estimateStrong(p,iters){
   const pool=fullDeck().filter(c=>!known.has(key(c))),N=pool.length;let pi=0;
   const take=()=>{if(pi>=N)return null;const j=pi+Math.floor(Math.random()*(N-pi));const t=pool[pi];pool[pi]=pool[j];pool[j]=t;return pool[pi++]};
   const peek=sz=>{const idx=new Set();while(idx.size<sz&&idx.size<N-pi)idx.add(pi+Math.floor(Math.random()*(N-pi)));return [...idx].map(i=>pool[i])};
-  const commit=cs=>{for(const c of cs){const j=pool.indexOf(c,pi);const t=pool[pi];pool[pi]=pool[j];pool[j]=t;pi++}};
-  const left=g.fam==='draw'?3-S.drawsDone:0;
-  const drawHand=o=>{
-    const dn=o.draws.length;
-    if(!dn){const h=peek(g.size);commit(h);return h}
+  const aceHigh=gid==='27TD'||gid==='BADEUCY',lowR=c=>c.r===14?(aceHigh?14:1):c.r;
+  const peekLow=sz=>{const idx=new Set();let guard=0;while(idx.size<sz&&idx.size<N-pi&&guard++<400){const i=pi+Math.floor(Math.random()*(N-pi));if(lowR(pool[i])<=8||Math.random()<.2)idx.add(i)}
+    while(idx.size<sz&&idx.size<N-pi)idx.add(pi+Math.floor(Math.random()*(N-pi)));return [...idx].map(i=>pool[i])};
+  const commit=cs=>{for(const c of cs){const j=pool.indexOf(c,pi);if(j<0)continue;const t=pool[pi];pool[pi]=pool[j];pool[j]=t;pi++}};
+  const left=g.fam==='draw'?3-S.drawsDone:0,maxM=g.fam==='board'?(g.hole===4?8:16):g.fam==='stud'?12:8;
+  const Ms=new Map(opps.map(o=>[o,Math.min(maxM,Math.max(1,Math.round(1/rangeFrac(o))))]));
+  // some of those bets and raises are bluffs: more of them from players who raise a lot
+  const bluffP=new Map(opps.map(o=>{const rate=((o.tRaise||0)+2)/((o.tAct||0)+10);return [o,.12*Math.max(.6,Math.min(2.5,rate/.22))]}));
+  // a draw-game candidate: a pre-draw hand that the standard rule would have drawn k cards from, plus the cards it drew
+  const drawCand=o=>{
+    const dn=o.draws.length;if(!dn)return {h:peek(g.size),used:null};
     const k=o.draws[dn-1],lft=4-dn;let best=null,bd=99;
-    for(let t=0;t<20;t++){const h=peek(g.size),d=Math.abs(policy(gid,h,lft).length-k);if(d<bd){bd=d;best=h}if(!d)break}
-    commit(best);const h=best.slice();for(const i of policy(gid,h,lft).slice(0,k)){const c=take();if(c)h[i]=c}
-    return h;
+    // players who keep most of their hand hold low cards: lean the search toward them so pat hands are actually found
+    const tries=k<=1?48:20,peekC=k<=1?peekLow:peek;
+    for(let t=0;t<tries;t++){const h=peekC(g.size),d=Math.abs(policy(gid,h,lft).length-k);if(d<bd){bd=d;best=h}if(!d)break}
+    const extra=peek(g.size+k).filter(c=>!best.includes(c)).slice(0,k),h=best.slice();
+    policy(gid,h,lft).slice(0,k).forEach((i,n)=>{if(extra[n])h[i]=extra[n]});
+    return {h,used:best.concat(extra)};
   };
   let total=0;
   for(let it=0;it<iters;it++){
@@ -807,12 +865,15 @@ function estimateStrong(p,iters){
     else if(g.fam==='stud'){const me=p.cards.slice();while(me.length<7)me.push(take());hands.push(me)}
     else hands.push(p.cards.slice());
     for(const o of opps){
-      const m=oppWeight(o),cnt=Math.floor(m)+(Math.random()<m%1?1:0);
-      for(let c=0;c<cnt;c++){
-        if(g.fam==='board'){const h=[];for(let k=0;k<g.hole;k++)h.push(take());if(h.includes(null))break;hands.push(h)}
-        else if(g.fam==='stud'){const h=o.cards.filter(x=>x.up);while(h.length<7)h.push(take());if(h.includes(null))break;hands.push(h)}
-        else{if(N-pi<g.size+4)break;hands.push(drawHand(o))}
+      const M=Math.random()<bluffP.get(o)?1:Ms.get(o),cands=[];
+      for(let c=0;c<M;c++){
+        if(g.fam==='board'){const h=peek(g.hole);if(h.length===g.hole)cands.push({h,used:h})}
+        else if(g.fam==='stud'){const up=o.cards.filter(x=>x.up),hid=peek(7-up.length);if(up.length+hid.length===7)cands.push({h:up.concat(hid),used:hid})}
+        else if(N-pi>=g.size+6)cands.push(drawCand(o));
       }
+      if(!cands.length)continue;
+      const ev=cands.map(c=>evaluate(gid,c.h,g.fam==='board'?board:[]));
+      const pick=cands[strongestOf(ev)];commit(pick.used||pick.h);hands.push(pick.h);
     }
     if(g.fam==='draw')for(let d=left;d>=1;d--)for(const h of hands){for(const i of policy(gid,h,d)){const c=take();if(c)h[i]=c}}
     total+=shareOf(hands.map(h=>evaluate(gid,h,board)),0);
@@ -858,26 +919,41 @@ function cpuDecideStrong(p){
     return {type:'check'};
   }
   const odds=L.toCall/(pot+L.toCall);
-  if(L.canRaise&&(s>1.85/ag||(nO===1&&eq>.62))&&r<.9)return raiseAct(L,s,pot,true);
-  const implied=last?0:(S.g.pot?.1:.05);
+  const reraise=S.raises>=2,huBar=last?(reraise?.68:.6):(reraise?.64:.58),multiBar=L.isPot&&S.raises>=2?2.3:1.85;
+  if(L.canRaise&&(s>multiBar/ag||(nO===1&&eq>huBar+(L.isPot&&S.raises>=3?.08:0)))&&r<.9)return raiseAct(L,s,pot,true);
+  const implied=last?0:(S.g.nl?.12:S.g.pot?.1:.05);
   if(eq>=odds-implied)return {type:'call'};
   return {type:'fold'};
 }
 function cpuDecide(p){
   if(isStrong(p))return cpuDecideStrong(p);
-  const L=legal(p),{eq,n}=estimate(p,ITERS[S.g.id]),st=p.style,r=Math.random(),s=eq*n,pot=totalPot();
+  const L=legal(p),est=estimate(p,ITERS[S.g.id]),n=est.n,st=p.style,r=Math.random(),pot=totalPot();
+  // in big-bet games a large bet means a strong hand even to the normal CPU: discount equity as the bet grows
+  const big=L.isPot&&L.toCall>0?Math.min(1,L.toCall/Math.max(pot-L.toCall,1)):0;
+  const eq=est.eq*(1-.35*big),s=eq*n;
   if(L.canCheck){
     if(L.canRaise&&((s>1.3/st.aggr&&r>.12)||(r<.06*st.aggr&&S.street>=1)))return raiseAct(L,s,pot);
     return {type:'check'};
   }
   const odds=L.toCall/(pot+L.toCall);
-  if(L.canRaise&&s>1.8/st.aggr&&r<.8)return raiseAct(L,s,pot);
-  const floor=S.street>=1?(S.g.fam==='draw'?.75:.5)/n*(1-st.loose):0;
-  if(eq>=Math.max(odds*(1-st.loose),floor)||r<.03)return {type:'call'};
+  const warBar=L.isPot&&S.raises>=2?2.5:1.8;
+  if(L.canRaise&&s>warBar/st.aggr&&r<.8)return raiseAct(L,s,pot);
+  const floor=S.street>=1&&!L.isPot?(S.g.fam==='draw'?.75:.5)/n*(1-st.loose):0;
+  if(eq>=Math.max(odds*(1-st.loose),floor)||(r<.03&&!big))return {type:'call'};
   return {type:'fold'};
 }
 function raiseAct(L,s,pot,strong){
   if(!L.isPot)return {type:'raise',to:L.raiseTo2&&s>(strong?1.6:2)?L.raiseTo2:L.raiseTo};
+  if(L.isNL){
+    // no-limit: size against the pot (raises = call plus a fraction of the pot after calling), shove with monsters or when little would be left
+    const frac=strong?(s>2.2?1:s>1.6?.75:.6):(.5+Math.random()*.5);
+    let to=L.toCall===0?pot*frac:S.currentBet+(pot+L.toCall)*frac;
+    // all-in only when the stack left is about a pot or less (committed), never as an opening shove into a small pot
+    const committed=L.maxTo-S.currentBet<=(pot+L.toCall)*1.2;
+    if(committed&&s>1.6)to=L.maxTo;
+    to=Math.round(to/10)*10;if(L.maxTo-to<pot*.35)to=L.maxTo;
+    return {type:'raise',to:Math.max(L.minTo,Math.min(L.maxTo,to))};
+  }
   let to=strong?(L.toCall===0?pot*(s>1.8?.8:.6):(s>2.3?L.maxTo:L.minTo+(L.maxTo-L.minTo)*.5)):L.toCall===0?pot*(.5+Math.random()*.35):(s>2.3?L.maxTo:L.minTo+(L.maxTo-L.minTo)*(.4+Math.random()*.4));
   to=Math.round(to/10)*10;
   return {type:'raise',to:Math.max(L.minTo,Math.min(L.maxTo,to))};
@@ -898,14 +974,37 @@ async function playHand(){
   }
   for(const p of S.players){
     if(p.stack<=0&&S.mode!=='tour'){p.stack=START;p.buyin+=START;log(`${p.name} が ${fmt(START)} をリバイ`,'sys')}
-    Object.assign(p,{cards:[],folded:!!p.out,allIn:false,streetBet:0,total:0,acted:false,vol:false,vpip:false,lastAct:p.out?'敗退':'',draws:[],showDesc:'',won:0,aggN:0,startStack:p.stack});
+    Object.assign(p,{cards:[],folded:!!p.out,allIn:false,streetBet:0,total:0,acted:false,vol:false,vpip:false,lastAct:p.out?'敗退':'',draws:[],showDesc:'',won:0,aggN:0,hist:[],startStack:p.stack});
   }
   S.rollup=false;S.scoop=false;S.myEval=null;S.sbI=-1;S.bbI=-1;
   log(`#${S.handNo}　${g.code.toUpperCase()}　${g.name}`,'sep');
   resetStreet();
+  if(S.lastGameId!==g.id){const prev=S.lastGameId;S.lastGameId=g.id;await gameIntro(prev)}
   if(g.fam==='stud')await playStud();else await playBlindGame();
 }
 const seated=()=>S.players.filter(p=>!p.out);
+/* game change: a card over the table names the new game and the one thing that differs from the last; tap or wait to start */
+const KEYS={LHE:['ボードと手札の7枚から最強の5枚','リミット：額は固定'],O8:['手札から必ず2枚、ボードから3枚','8以下のローとハイでポットを半分ずつ'],
+  RAZZ:['一番低い手が勝ち。Aはロー','ストレート・フラッシュは関係なし'],STUD:['7枚から最強の5枚（ハイ）','表向きが一番低い人がブリングイン'],
+  STUD8:['ハイと8以下のローで半分ずつ','ローがいなければハイが総取り'],'27TD':['一番低い手が勝ち。Aはハイ','ストレート・フラッシュは不利'],
+  A5TD:['一番低い手が勝ち。Aはロー','ストレート・フラッシュは関係なし'],BADUGI:['4枚すべてスートも数字も違う手を目指す','低いほど強い。Aはロー'],
+  NLHE:['額は自由。いつでもオールイン','ボードと手札の7枚から最強の5枚'],PLO:['手札から必ず2枚、ボードから3枚','ベットはポットの額まで'],
+  BADEUCY:['2-7とバドゥーギで半分ずつ','Aはどちらでもハイ（悪いカード）'],BADACEY:['A-5とバドゥーギで半分ずつ','Aはどちらでもロー（良いカード）']};
+const FAMNAME={board:'ボード系',stud:'スタッド系',draw:'ドロー系'};
+async function gameIntro(prevId){
+  const t=TOKEN;S.intro={prev:prevId?GBY[prevId]:null};render();
+  await new Promise(res=>{S.introDone=res;setTimeout(res,{slow:3400,normal:2600,fast:1700}[SET.speed]||2600)});
+  if(t!==TOKEN)throw new Abort();
+  S.intro=null;S.introDone=null;render();
+}
+function introHTML(){
+  const g=S.g,k=KEYS[g.id]||[],prev=S.intro.prev;
+  return `<div class="intro fam-${g.fam}" data-act="introgo" role="status"><div class="icard">
+    <span class="ilabel">${prev?`ゲームチェンジ　${prev.code} →`:'最初のゲーム'}</span>
+    <b class="icode">${g.code}</b><span class="iname">${g.name}</span><span class="ifam">${FAMNAME[g.fam]}</span>
+    <ul>${k.map(x=>`<li>${x}</li>`).join('')}</ul>
+    <span class="ihands">このゲームは ${SET.handsPer} ハンド</span><span class="itap">タップで開始</span></div></div>`;
+}
 function nextSeat(i){for(let k=1;k<=5;k++){const j=(i+k)%5;if(!S.players[j].out)return j}return i}
 function postBlinds(){
   // heads-up: the button posts the small blind and acts first before the flop
@@ -1116,14 +1215,16 @@ function renderTop(){
 function renderCenter(){
   const g=S.g;if(!g)return;
   const lim=`${smallBet()}/${bigBet()}`,bl=`${sbAmt()}/${bbAmt()}`;
-  const struct=g.pot?`ポットリミット・ブラインド ${bl}`:g.fam==='stud'?`リミット ${lim}・アンティ ${anteAmt()}・ブリングイン ${bringAmt()}${g.id==='STUD'?`・4thオープンペアで${bigBet()}可`:''}`:g.fam==='draw'?`リミット ${lim}・ブラインド ${bl}・2回目のドロー後から${bigBet()}`:`リミット ${lim}・ブラインド ${bl}・ターンから${bigBet()}`;
+  const struct=g.nl?`ノーリミット・ブラインド ${bl}`:g.pot?`ポットリミット・ブラインド ${bl}`:g.fam==='stud'?`リミット ${lim}・アンティ ${anteAmt()}・ブリングイン ${bringAmt()}${g.id==='STUD'?`・4thオープンペアで${bigBet()}可`:''}`:g.fam==='draw'?`リミット ${lim}・ブラインド ${bl}・2回目のドロー後から${bigBet()}`:`リミット ${lim}・ブラインド ${bl}・ターンから${bigBet()}`;
   let board='';
   if(g.fam==='board'){const sl=[];for(let k=0;k<5;k++)sl.push(S.board[k]?cardHTML(S.board[k]):'<div class="slot"></div>');board=`<div class="board">${sl.join('')}</div>`}
   let res='';
   if(S.result){const me=S.players[0],d=me.won-me.total;
     res=`<div class="banner">${S.result.lines.map(l=>`<div>${l}</div>`).join('')}${me.total>0?`<div class="delta ${d>=0?'up':'down'}">このハンドのあなた ${d>=0?'+':''}${fmt(d)}</div>`:''}</div>`}
   const c=$('#center');c.classList.toggle('showhint',HINT);c.classList.toggle('done',!!S.result);
-  c.innerHTML=`<div class="ghead"><div class="code">${g.code}</div><button class="gname" data-act="hint" type="button" aria-expanded="${HINT}"><span>${g.name}</span><span class="struct">${struct}</span><span class="more">${HINT?'ルールを閉じる':'ルール'}</span></button></div><div class="hint">${g.hint} <button class="morelink" data-act="help" data-game="${g.id}" type="button">詳しいルール</button></div><div class="lrow"><div class="ladder">${ladder()}</div><div class="pot">ポット <b>${fmt(totalPot())}</b>${g.fam==='draw'?`<span class="stub">山札 ${S.deck.length}枚</span>`:''}</div></div>${S.mode==='tour'?tourLine():''}${board}${res}`;
+  const leftH=Math.max(1,SET.handsPer-S.handsInGame),nxt=GAMES[nextEnabled(S.gameIdx)],single=nxt.id===g.id;
+  const cd=single?'':leftH===1?`<span class="cdown last">このゲーム最後・次は ${nxt.code}</span>`:`<span class="cdown">あと${leftH}ハンド</span>`;
+  c.innerHTML=`<div class="ghead"><div class="code">${g.code}</div>${cd}<button class="gname" data-act="hint" type="button" aria-expanded="${HINT}"><span>${g.name}</span><span class="struct">${struct}</span><span class="more">${HINT?'ルールを閉じる':'ルール'}</span></button></div><div class="hint">${g.hint} <button class="morelink" data-act="help" data-game="${g.id}" type="button">詳しいルール</button></div><div class="lrow"><div class="ladder">${ladder()}</div><div class="pot">ポット <b>${fmt(totalPot())}</b>${g.fam==='draw'?`<span class="stub">山札 ${S.deck.length}枚</span>`:''}</div></div>${S.mode==='tour'?tourLine():''}${board}${res}`;
 }
 function renderMe(){
   const p=S.players[0],g=S.g,picking=S.pending&&S.pending.type==='draw',el=$('#me');
@@ -1142,7 +1243,7 @@ function renderActs(){
     if(L.canRaise){
       if(L.isPot){
         sizer=`<div class="sizer"><input type="range" id="amt" min="${L.minTo}" max="${L.maxTo}" step="10" value="${L.minTo}" aria-label="${L.word}額">
-          <button class="chipbtn" data-act="size" data-f="min" type="button">最小</button><button class="chipbtn" data-act="size" data-f="half" type="button">½ポット</button><button class="chipbtn" data-act="size" data-f="pot" type="button">ポット</button></div>`;
+          <button class="chipbtn" data-act="size" data-f="min" type="button">最小</button><button class="chipbtn" data-act="size" data-f="half" type="button">½ポット</button><button class="chipbtn" data-act="size" data-f="pot" type="button">ポット</button>${L.isNL?'<button class="chipbtn" data-act="size" data-f="allin" type="button">オールイン</button>':''}</div>`;
         raiseBtn=`<button class="btn pri" data-act="raise" type="button" id="raiseBtn">${L.word} ${fmt(L.minTo)}</button>`;
       }else{
         raiseBtn=`<button class="btn pri" data-act="raise" type="button">${L.word} ${fmt(L.raiseTo)}</button>`;
@@ -1152,7 +1253,7 @@ function renderActs(){
     const odds=L.toCall>0?`<div class="note">ポット ${fmt(L.pot)} に対して ${fmt(L.toCall)} のコール（オッズ ${(L.pot/L.toCall).toFixed(1)} : 1）</div>`:'';
     const notes=[];
     if(L.raiseTo2)notes.push(`オープンペアが出ているので、${smallBet()} と ${bigBet()} のどちらでも打てます`);
-    if(!L.isPot&&L.canRaise)notes.push(L.capLeft==null?'ヘッズアップなのでレイズ回数の上限なし':`キャップまであと ${L.capLeft} ベット`);
+    if(!L.isPot&&L.canRaise)notes.push(`キャップまであと ${L.capLeft} ベット`);
     if(!L.isPot&&!L.canRaise&&!L.canCheck&&S.players[0].capped)notes.push('ショートのオールインはレイズ扱いにならないため、コールかフォールドのみ');
     else if(!L.isPot&&!L.canRaise&&S.raises>=maxBets())notes.push('キャップに達したのでレイズできません');
     el.innerHTML=`<div class="acts" style="flex-direction:column">${sizer}<div class="acts">${L.canCheck?'':'<button class="btn" data-act="fold" type="button">フォールド</button>'}<button class="btn" data-act="call" type="button">${L.canCheck?'チェック':`コール ${fmt(L.toCall)}`}</button>${raiseBtn}</div>${odds}${notes.length?`<div class="note">${notes.join('　')}</div>`:''}<div class="kbd">キー操作　F フォールド・C チェック/コール・R ${L.word}</div></div>`;
@@ -1176,16 +1277,18 @@ function renderLog(){
   if(S.log.length===lastLogLen)return;lastLogLen=S.log.length;
   const ol=$('#log');ol.innerHTML=S.log.map(l=>`<li class="${l.cls}">${l.text}</li>`).join('');ol.scrollTop=ol.scrollHeight;
 }
-function render(){if(!S.g)return;renderTop();const op=$('#opps');op.className='opps'+(S.g.fam==='stud'||S.reveal?' wide':'');op.innerHTML=[1,2,3,4].map(i=>seatHTML(S.players[i],i)).join('');renderCenter();renderMe();renderActs();renderLog()}
+function render(){if(!S.g)return;renderTop();const tb=$('#table');tb.className='table fam-'+S.g.fam;$('#introMount').innerHTML=S.intro?introHTML():'';const op=$('#opps');op.className='opps'+(S.g.fam==='stud'||S.reveal?' wide':'');op.innerHTML=[1,2,3,4].map(i=>seatHTML(S.players[i],i)).join('');renderCenter();renderMe();renderActs();renderLog()}
 
 /* ---------- input ---------- */
 function sizeTo(f){
   const L=S.pending.data,inp=$('#amt');if(!inp)return;
   const raw=S.currentBet-S.players[0].streetBet;let to;
-  if(f==='min')to=L.minTo;else if(f==='pot')to=L.maxTo;else to=S.currentBet+Math.max(raw,0)+(totalPot()+Math.max(raw,0))/2;
+  const potTo=S.currentBet+Math.max(raw,0)+totalPot()+Math.max(raw,0);
+  if(f==='min')to=L.minTo;else if(f==='allin')to=L.maxTo;else if(f==='pot')to=L.isNL?potTo:L.maxTo;else to=S.currentBet+Math.max(raw,0)+(totalPot()+Math.max(raw,0))/2;
+  if(f==='allin'){inp.value=L.maxTo;updRaise();return}
   to=Math.max(L.minTo,Math.min(L.maxTo,Math.round(to/10)*10));inp.value=to;updRaise();
 }
-function updRaise(){const inp=$('#amt'),b=$('#raiseBtn');if(inp&&b&&S.pending){let v=+inp.value;const L=S.pending.data;if(+inp.max===L.maxTo&&v>L.maxTo-10)v=v>=L.maxTo-5?L.maxTo:v;b.textContent=`${L.word} ${fmt(v)}`}}
+function updRaise(){const inp=$('#amt'),b=$('#raiseBtn');if(inp&&b&&S.pending){let v=+inp.value;const L=S.pending.data;if(+inp.max===L.maxTo&&v>L.maxTo-10)v=v>=L.maxTo-5?L.maxTo:v;b.textContent=L.isNL&&v>=L.maxTo?`オールイン ${fmt(v)}`:`${L.word} ${fmt(v)}`}}
 function act(name,el){
   const P=S.pending;
   switch(name){
@@ -1198,7 +1301,10 @@ function act(name,el){
     case 'size':if(P&&P.type==='bet')sizeTo(el.dataset.f);break;
     case 'draw':if(P&&P.type==='draw')P.resolve([...S.sel]);break;
     case 'next':if(P&&P.type==='next')P.resolve(true);break;
+    case 'introgo':if(S.introDone)S.introDone();break;
     case 'settings':openSettings();break;
+    case 'preset':{const ids=PRESETS[+el.dataset.i][1];SET.enabled=GAMES.map(g=>g.id).filter(id=>ids.includes(id));saveSettings();
+      document.querySelectorAll('#glist input').forEach(x=>{x.checked=SET.enabled.includes(x.dataset.gid)});syncLocks();renderPresets();renderTop();break}
     case 'hint':HINT=!HINT;renderCenter();break;
     case 'log':{const lg=$('.log');lg.classList.toggle('open');if(lg.classList.contains('open')){const ol=$('#log');ol.scrollTop=ol.scrollHeight}break}
     case 'stats':$('#statSheet').hidden=false;wipeArmed=false;renderStats();break;
@@ -1243,7 +1349,10 @@ document.addEventListener('keydown',e=>{
   else if(P.type==='draw'&&e.key==='Enter')act('draw');
   else if(P.type==='next'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();act('next')}
 });
+const PRESETS=[['HORSE',['LHE','O8','RAZZ','STUD','STUD8']],['8ゲーム',['27TD','LHE','O8','RAZZ','STUD','STUD8','NLHE','PLO']],['ドロー系',['27TD','A5TD','BADUGI','BADEUCY','BADACEY']],['全'+GAMES.length+'種',GAMES.map(g=>g.id)]];
+function renderPresets(){const on=[...SET.enabled].sort().join();$('#presets').innerHTML=PRESETS.map(([n,ids],i)=>`<button type="button" class="chipbtn" data-act="preset" data-i="${i}" aria-pressed="${[...ids].sort().join()===on}">${n}</button>`).join('')}
 function openSettings(){
+  renderPresets();
   $('#glist').innerHTML=GAMES.map((g,i)=>`<label><input type="checkbox" id="g-${g.id}" data-gid="${g.id}" ${isOn(i)?'checked':''}><b>${g.chip}</b><span>${g.name}</span></label>`).join('');
   $('#handsPer').value=String(SET.handsPer);$('#speed').value=SET.speed;$('#level').value=SET.level;$('#auto').checked=!!SET.auto;
   const b=$('#resetBtn');b.dataset.armed='';b.textContent='最初からやり直す';
@@ -1258,7 +1367,7 @@ document.addEventListener('change',e=>{
   else if(t.id==='level')SET.level=t.value;
   else if(t.id==='auto')SET.auto=t.checked;
   else return;
-  saveSettings();renderTop();
+  saveSettings();renderTop();if($('#presets'))renderPresets();
 });
 function resetSession(){
   TOKEN++;const p=S.pending;S.pending=null;if(p)p.resolve(null);
@@ -1400,7 +1509,7 @@ const bdgInfo=(e,h)=>{const x=-e.myEval[h].v,size=4-Math.floor(x/65536);return {
 const ACH=[
   {id:'first',name:'初めてのポット',desc:'ポットを取る',pts:30,test:e=>e.won},
   {id:'steal',name:'全員降ろした',desc:'ショーダウンなしでポットを取る',pts:30,test:e=>e.uncontested},
-  {id:'all11',name:'11ゲーム制覇',desc:'11ゲームすべてでポットを取る',pts:150,test:()=>Object.keys(PROF.gamesWon).length>=GAMES.length},
+  {id:'all11',name:'全ゲーム制覇',desc:'すべてのゲームでポットを取る',pts:150,test:()=>Object.keys(PROF.gamesWon).length>=GAMES.length},
   {id:'big25',name:'ビッグポット',desc:'1ハンドでビッグベット25個分以上勝つ',pts:80,test:e=>e.bigBets>=25},
   {id:'lhe_boat',name:'ホールデムの大物',desc:'ホールデムでフルハウス以上を作って勝つ',pts:60,test:e=>e.gid==='LHE'&&e.sdWin&&hiCat(e)>=6},
   {id:'plo_flush',name:'オマハの本命',desc:'PLOでフラッシュ以上を作って勝つ',pts:50,test:e=>e.gid==='PLO'&&e.sdWin&&hiCat(e)>=5},
@@ -1568,6 +1677,9 @@ A5TD:{facts:[['カード','5枚'],['交換','3回'],['勝ち','一番低い手�
 BADUGI:{facts:[['カード','4枚'],['交換','3回'],['勝ち','一番いいバドゥーギ（下の比べ方）'],['バドゥーギとは','4枚すべてスートも数字も違う手'],['A','いつもロー（1扱い）'],['比べ方','①使える枚数が多い方が勝ち（4枚のバドゥーギ＞3枚＞2枚）②同じ枚数なら、一番高いカードから比べて低い方が勝ち'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
   ex:[['最強','Ac 2d 3h 4s','4-3-2-A'],['4枚','Kc 2d 3h 4s','Kでも4枚あれば、どんな3枚の手にも勝つ'],['3枚','Ac 2c 3h 4s','♣が2枚あるので、使えるのは3枚の 4-3-A']],
   tips:['同じスートや同じ数字は1枚しか数えません。','3回目の交換後に3枚のままだと、4枚のバドゥーギには勝てません。'] },
+NLHE:{facts:[['手札','2枚'],['ボード','5枚'],['役の作り方','手札とボードの7枚から、好きな5枚'],['勝ち','一番強いハイハンド'],['ベット','ノーリミット。ブラインド 10/20。ベットとレイズの額は自由で、上限は手持ちのチップ全部（オールイン）。最小ベットは20、最小レイズは直前のレイズ額と同じだけ上乗せ'],['進行',FLOW_BOARD]],
+  ex:[['最強','As Ks Qs Js Ts','ロイヤルフラッシュ'],['よくある勝負','Ah Ad','ポケットエース。でもボード次第で簡単に逆転されます']],
+  tips:['8ゲームの中で唯一、額を自由に決められるゲーム。リミットのゲームとは打ち方がまったく違います。','画面のスライダーと「最小／½ポット／ポット／オールイン」ボタンで額を決めます。'] },
 PLO:{facts:[['手札','4枚'],['ボード','5枚'],['役の作り方','必ず手札から2枚＋ボードから3枚'],['勝ち','一番強いハイハンド'],['ベット','ポットリミット。ブラインド 10/20。ベット・レイズの上限は「コールした後のポットの額」まで。最小ベットは20、最小レイズは直前のレイズ額と同じだけ上乗せ'],['進行',FLOW_BOARD]],
   ex:[['強い手札','Ah As Kh Ks','ダブルスーテッドのAAKK'],['よくある失敗','Ah 7c 6d 2s','ボードに♥4枚でも、手札の♥が1枚ではフラッシュにならない']],
   tips:['4枚から2枚の組み合わせが6通りあるので、ホールデムより手が強くなりがち。ナッツ（その時点で最強の手）でないと危険です。','画面のスライダーと「最小／½ポット／ポット」ボタンで額を決めます。'] },
@@ -1587,7 +1699,7 @@ function helpAim(){return `
     <li><b>相手を全員降ろす</b>：ベットやレイズで相手が全員フォールドすれば、手を見せずにポットを取れます（ブラフ）。</li></ol>
     <p class="muted">「一番いい手」が何かはゲームごとに違います。高い役が勝つゲーム、低い手が勝つゲーム、ポットを高い手と低い手で半分ずつ分けるゲームがあります。</p></div>
   <div class="sec2"><h3>ミックスゲームとは</h3>
-    <p>決まったハンド数ごとに、遊ぶポーカーの種類が入れ替わる形式です。このアプリでは11種類を順番に遊びます。1つのゲームが得意でも、全部で勝てないとトータルでは勝てません。</p>
+    <p>決まったハンド数ごとに、遊ぶポーカーの種類が入れ替わる形式です。このアプリでは12種類を順番に遊びます。1つのゲームが得意でも、全部で勝てないとトータルでは勝てません。</p>
     <p>目標は、苦手なゲームを減らして全体で勝ち越すこと。「収支」のゲーム別成績で得意・苦手が分かります。慣れてきたら、設定でCPUを「強い」にして挑戦してください。</p></div>`}
 function helpPlay(){return `
   <div class="sec2"><h3>2つのモード</h3><ul>
@@ -1636,8 +1748,9 @@ function helpRules(){return `
     </tbody></table></div></div>
   <div class="sec2"><h3>ベットのルール</h3><ul>
     <li><b>リミット（固定額）</b>：ベットとレイズの額は決まっています（フリープレイでは20か40）。序盤は小さい額、後半は2倍の額です。トーナメントではレベルが上がるたびに、ブラインド・アンティを含むすべての額が同じ倍率で上がります。</li>
-    <li><b>キャップ</b>：1ラウンドに「ベット＋3レイズ」まで。2人だけになったら上限なし。</li>
+    <li><b>キャップ</b>：1ラウンドに「ベット＋3レイズ」まで。2人だけ（ヘッズアップ）になっても同じです。</li>
     <li><b>ショートのオールイン</b>：リミットでベットの半分未満、PLOで最小レイズ未満のオールインはレイズに数えません。すでに打った人は再レイズできません。</li>
+    <li><b>ノーリミット</b>（NLホールデムのみ）：上限なし。手持ちのチップ全部までいつでも賭けられます。</li>
     <li><b>ポットリミット</b>（PLOのみ）：上限は「コールした後のポットの額」まで。</li>
     <li><b>ブラインド</b>：ボタンの左がSB 10、その左がBB 20を最初に出します。ボタンは毎ハンド1つずつ左へ。</li>
     <li><b>アンティとブリングイン</b>（スタッド系）：全員がアンティ 3を出し、表向きカードで決まった1人がブリングイン 5（または20にコンプリート）を出します。</li></ul></div>
