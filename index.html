@@ -54,7 +54,7 @@ header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
 .rot{display:flex;flex-wrap:wrap;gap:4px}
 .rot b{font-family:var(--f-display);font-weight:600;font-size:13px;letter-spacing:.07em;padding:3px 8px;border:1px solid var(--rail-2);border-radius:3px;color:var(--muted)}
 .rot b.cur{background:var(--brass);border-color:var(--brass);color:var(--on-brass)}
-.rot b.off{opacity:.3;text-decoration:line-through}
+.rot{scroll-behavior:smooth}
 .rot-note{font-size:11px;color:var(--faint);letter-spacing:.03em}
 .stats{display:flex;align-items:center;gap:14px;font-family:var(--f-num);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .stats .up{color:var(--good)}.stats .down{color:var(--bad)}
@@ -526,6 +526,11 @@ let SET=(()=>{try{const s=JSON.parse(localStorage.getItem('ngm-settings')||'null
   return {...DEFAULT,...s,enabled:en.length?en:ALLIDS.slice(),known:ALLIDS}}}catch(e){}return {...DEFAULT,known:ALLIDS}})();
 function saveSettings(){SET.known=ALLIDS;try{localStorage.setItem('ngm-settings',JSON.stringify(SET))}catch(e){}}
 const isOn=i=>SET.enabled.includes(GAMES[i].id);
+function rotInfo(){
+  const list=GAMES.filter((g,i)=>isOn(i)),g=GAMES[S.gameIdx],pos=list.findIndex(x=>x.id===g.id)+1;
+  const nxt=GAMES[nextEnabled(S.gameIdx)];
+  return {list,n:list.length,pos,single:list.length<=1||nxt.id===g.id,hand:Math.min(SET.handsPer,S.handsInGame+1),per:SET.handsPer,last:S.handsInGame+1>=SET.handsPer,nxt,lap:S.lap||1};
+}
 function nextEnabled(i){for(let k=1;k<=GAMES.length;k++){const j=(i+k)%GAMES.length;if(isOn(j))return j}return i}
 
 /* ---------- cards & evaluation ---------- */
@@ -659,7 +664,7 @@ let TOKEN=0;
 class Abort extends Error{}
 function newSession(mode){
   const st=mode==='tour'?TOUR.stack:START;
-  return {mode:mode||'free',mult:1,blindLv:-1,tourHands:0,players:SEATS.map((s,i)=>({id:i,name:s.name,human:!!s.human,tag:s.tag||'',style:s.style,stack:st,buyin:st,out:false,place:0,cards:[],folded:false,allIn:false,streetBet:0,total:0,acted:false,vol:false,lastAct:'',draws:[],showDesc:'',won:0})),
+  return {mode:mode||'free',lap:1,mult:1,blindLv:-1,tourHands:0,players:SEATS.map((s,i)=>({id:i,name:s.name,human:!!s.human,tag:s.tag||'',style:s.style,stack:st,buyin:st,out:false,place:0,cards:[],folded:false,allIn:false,streetBet:0,total:0,acted:false,vol:false,lastAct:'',draws:[],showDesc:'',won:0})),
     button:Math.floor(Math.random()*5),gameIdx:isOn(0)?0:nextEnabled(0),handsInGame:0,handNo:0,g:null,deck:[],muck:[],board:[],street:0,
     currentBet:0,lastRaise:20,raises:0,unit:20,drawsDone:0,drawNo:0,phase:'bet',acting:-1,pending:null,result:null,reveal:false,over:false,log:[],sel:new Set(),bringIn:-1};
 }
@@ -998,12 +1003,12 @@ async function gameIntro(prevId){
   S.intro=null;S.introDone=null;render();
 }
 function introHTML(){
-  const g=S.g,k=KEYS[g.id]||[],prev=S.intro.prev;
+  const g=S.g,k=KEYS[g.id]||[],prev=S.intro.prev,R=rotInfo();
   return `<div class="intro fam-${g.fam}" data-act="introgo" role="status"><div class="icard">
-    <span class="ilabel">${prev?`ゲームチェンジ　${prev.code} →`:'最初のゲーム'}</span>
+    <span class="ilabel">${R.single?'このゲームだけで進行します':prev?`ゲームチェンジ（${R.pos}/${R.n}）　${prev.code} →`:`最初のゲーム（1/${R.n}）`}</span>
     <b class="icode">${g.code}</b><span class="iname">${g.name}</span><span class="ifam">${FAMNAME[g.fam]}</span>
     <ul>${k.map(x=>`<li>${x}</li>`).join('')}</ul>
-    <span class="ihands">このゲームは ${SET.handsPer} ハンド</span><span class="itap">タップで開始</span></div></div>`;
+    ${R.single?'':`<span class="ihands">このゲームは ${R.per} ハンド・次は ${R.nxt.name}</span>`}<span class="itap">タップで開始</span></div></div>`;
 }
 function nextSeat(i){for(let k=1;k<=5;k++){const j=(i+k)%5;if(!S.players[j].out)return j}return i}
 function postBlinds(){
@@ -1142,7 +1147,7 @@ async function main(){
       const pr=ask('next');
       if(SET.auto){const pend=S.pending;setTimeout(()=>{if(S.pending===pend)pend.resolve(true)},3800)}
       await pr;
-      S.handsInGame++;if(S.handsInGame>=SET.handsPer){S.handsInGame=0;S.gameIdx=nextEnabled(S.gameIdx)}
+      S.handsInGame++;if(S.handsInGame>=SET.handsPer){S.handsInGame=0;const was=S.gameIdx;S.gameIdx=nextEnabled(was);if(S.gameIdx<=was&&S.gameIdx!==was)S.lap=(S.lap||1)+1}
       S.button=nextSeat(S.button);
     }
   }catch(e){
@@ -1203,9 +1208,10 @@ function ladder(){
   return steps.map((s,i)=>`<i class="${i<idx?'done':i===idx?'now':''}">${s}</i>`).join('')+(S.reveal?'<i class="now">ショーダウン</i>':'');
 }
 function renderTop(){
-  $('#rot').innerHTML=GAMES.map((g,i)=>`<b class="${i===S.gameIdx?'cur':''} ${isOn(i)?'':'off'}" title="${g.name}">${g.chip}</b>`).join('');
-  const leftN=Math.max(1,SET.handsPer-S.handsInGame),nx=GAMES[nextEnabled(S.gameIdx)];
-  $('#rotNote').textContent=`このゲームはあと ${leftN} ハンド　次は ${nx.name}`;
+  const R=rotInfo(),box=$('#rot');
+  box.innerHTML=R.list.map(g=>`<b class="${g.id===GAMES[S.gameIdx].id?'cur':''}" title="${g.name}">${g.chip}</b>`).join('');
+  const cur=box.querySelector&&box.querySelector('.cur');if(cur&&box.clientWidth)box.scrollLeft=cur.offsetLeft-box.offsetLeft-box.clientWidth/2+cur.offsetWidth/2;
+  $('#rotNote').textContent=R.single?`${GAMES[S.gameIdx].name}のみ（ローテーションなし）`:`ゲーム ${R.pos||'-'}/${R.n}・ハンド ${R.hand}/${R.per}${R.lap>1?`・${R.lap}周目`:''}　次は ${R.nxt.name}`;
   const net=REC.net;
   $('#lvlBadge').hidden=(S.level||SET.level)!=='strong';
   if(S.mode==='tour'){$('#netMini').innerHTML='';$('#rotNote').textContent+=`　トーナメント中`}
@@ -1222,8 +1228,8 @@ function renderCenter(){
   if(S.result){const me=S.players[0],d=me.won-me.total;
     res=`<div class="banner">${S.result.lines.map(l=>`<div>${l}</div>`).join('')}${me.total>0?`<div class="delta ${d>=0?'up':'down'}">このハンドのあなた ${d>=0?'+':''}${fmt(d)}</div>`:''}</div>`}
   const c=$('#center');c.classList.toggle('showhint',HINT);c.classList.toggle('done',!!S.result);
-  const leftH=Math.max(1,SET.handsPer-S.handsInGame),nxt=GAMES[nextEnabled(S.gameIdx)],single=nxt.id===g.id;
-  const cd=single?'':leftH===1?`<span class="cdown last">このゲーム最後・次は ${nxt.code}</span>`:`<span class="cdown">あと${leftH}ハンド</span>`;
+  const R=rotInfo(),lap=R.lap>1?`・${R.lap}周目`:'';
+  const cd=R.single?'':R.last?`<span class="cdown last">ゲーム ${R.pos}/${R.n}・最後のハンド・次は ${R.nxt.code}</span>`:`<span class="cdown">ゲーム ${R.pos}/${R.n}・ハンド ${R.hand}/${R.per}${lap}</span>`;
   c.innerHTML=`<div class="ghead"><div class="code">${g.code}</div>${cd}<button class="gname" data-act="hint" type="button" aria-expanded="${HINT}"><span>${g.name}</span><span class="struct">${struct}</span><span class="more">${HINT?'ルールを閉じる':'ルール'}</span></button></div><div class="hint">${g.hint} <button class="morelink" data-act="help" data-game="${g.id}" type="button">詳しいルール</button></div><div class="lrow"><div class="ladder">${ladder()}</div><div class="pot">ポット <b>${fmt(totalPot())}</b>${g.fam==='draw'?`<span class="stub">山札 ${S.deck.length}枚</span>`:''}</div></div>${S.mode==='tour'?tourLine():''}${board}${res}`;
 }
 function renderMe(){
