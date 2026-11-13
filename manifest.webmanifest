@@ -1,7 +1,7 @@
 {
   "name": "MIX Game Poker",
   "short_name": "MIX Poker",
-  "description": "12種のミックスゲームをCPUと遊べるポーカー",
+  "description": "14種のミックスゲームをCPUと遊べるポーカー",
   "lang": "ja",
   "start_url": "/",
   "display": "standalone",

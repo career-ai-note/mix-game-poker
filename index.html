@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MIX Game Poker</title>
-<meta name="description" content="HORSE・8ゲーム・2-7/A-5トリプルドロー・バドゥーギ・NLホールデム・PLO・バデューシー・バデーシーの12種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
+<meta name="description" content="HORSE・8ゲーム・2-7/A-5トリプルドロー・バドゥーギ・NLホールデム・PLO・ビッグO・ドラマハ・バデューシー・バデーシーの14種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
 <meta name="theme-color" content="#120d0c">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:title" content="MIX Game Poker">
-<meta property="og:description" content="HORSE・8ゲーム・2-7/A-5トリプルドロー・バドゥーギ・NLホールデム・PLO・バデューシー・バデーシーの12種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
+<meta property="og:description" content="HORSE・8ゲーム・2-7/A-5トリプルドロー・バドゥーギ・NLホールデム・PLO・ビッグO・ドラマハ・バデューシー・バデーシーの14種を、CPU4人とブラウザで遊べるミックスゲームポーカー。トーナメント、段位、デイリーミッション、実績つき。登録不要・無料。">
 <meta property="og:url" content="https://mix-game-poker.vercel.app/">
 <meta property="og:image" content="https://mix-game-poker.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
@@ -501,6 +501,8 @@ const GAMES=[
  {id:'BADUGI',code:'Badugi',chip:'BDG',name:'バドゥーギ',fam:'draw',size:4,hint:'4枚すべてスートもランクも違えばバドゥーギ。低いほど強く、Aはロー。交換は3回。'},
  {id:'NLHE',code:"NL Hold'em",chip:'NL',name:'ノーリミット ホールデム',fam:'board',hole:2,nl:true,hint:'手札2枚とボード5枚から最強の5枚を作るハイゲーム。ベット額は自由で、いつでもオールインできます。'},
  {id:'PLO',code:'PLO',chip:'PLO',name:'ポットリミット オマハ',fam:'board',hole:4,pot:true,hint:'手札4枚から必ず2枚使うハイゲーム。ベットはポットの額まで。'},
+ {id:'BIGO',code:'Big O',chip:'BIGO',name:'ビッグO',fam:'board',hole:5,pot:true,hint:'手札5枚から必ず2枚使うハイロー（8以下のロー）。ポットをハイとローで半分ずつ。ベットはポットの額まで。'},
+ {id:'DRAMAHA',code:'Dramaha',chip:'DRM',name:'ドラマハ',fam:'board',hole:5,dramaha:true,hint:'手札5枚。フロップの後に1回だけ0〜5枚交換できる。オマハのハイ（手札2枚＋ボード3枚）と、手札5枚だけのポーカーのハイでポットを半分ずつ。'},
  {id:'BADEUCY',code:'Badeucy',chip:'BDC',name:'バデューシー',fam:'draw',size:5,hint:'5枚で2-7ローとバドゥーギ（Aはハイ）を同時に競い、半分ずつ分ける。最強のカードは2。交換は3回。'},
  {id:'BADACEY',code:'Badacey',chip:'BDA',name:'バデーシー',fam:'draw',size:5,hint:'5枚でA-5ローとバドゥーギ（どちらもAはロー）を同時に競い、半分ずつ分ける。最強のカードはA。交換は3回。'},
 ];
@@ -522,7 +524,8 @@ const DEFAULT={enabled:GAMES.map(g=>g.id),handsPer:5,speed:'normal',auto:false,l
 const ALLIDS=GAMES.map(g=>g.id);
 let SET=(()=>{try{const s=JSON.parse(localStorage.getItem('ngm-settings')||'null');if(s&&Array.isArray(s.enabled)&&s.enabled.length){
   const known=Array.isArray(s.known)?s.known:['LHE','O8','RAZZ','STUD','STUD8','27TD','BADUGI','PLO','BADEUCY'];
-  const en=s.enabled.filter(id=>ALLIDS.includes(id)).concat(ALLIDS.filter(id=>!known.includes(id)&&!s.enabled.includes(id)));
+  const hadAll=known.filter(id=>ALLIDS.includes(id)).every(id=>s.enabled.includes(id));
+  const en=s.enabled.filter(id=>ALLIDS.includes(id)).concat(hadAll?ALLIDS.filter(id=>!known.includes(id)&&!s.enabled.includes(id)):[]);
   return {...DEFAULT,...s,enabled:en.length?en:ALLIDS.slice(),known:ALLIDS}}}catch(e){}return {...DEFAULT,known:ALLIDS}})();
 function saveSettings(){SET.known=ALLIDS;try{localStorage.setItem('ngm-settings',JSON.stringify(SET))}catch(e){}}
 const isOn=i=>SET.enabled.includes(GAMES[i].id);
@@ -580,7 +583,8 @@ function evaluate(gid,cards,board){
   switch(gid){
     case 'LHE':case 'NLHE':return [{t:'high',v:best5(cards.concat(board),hi,false)}];
     case 'PLO':return [{t:'high',v:omahaBest(cards,board,hi,false)}];
-    case 'O8':{const l=omahaBest(cards,board,low8,true);return [{t:'high',v:omahaBest(cards,board,hi,false)},{t:'low8',v:l===null?null:-l}]}
+    case 'DRAMAHA':return [{t:'high',v:omahaBest(cards,board,hi,false)},{t:'high',v:hi(cards)}];
+    case 'O8':case 'BIGO':{const l=omahaBest(cards,board,low8,true);return [{t:'high',v:omahaBest(cards,board,hi,false)},{t:'low8',v:l===null?null:-l}]}
     case 'STUD':return [{t:'high',v:best5(cards,hi,false)}];
     case 'STUD8':{const l=best5(cards,low8,true);return [{t:'high',v:best5(cards,hi,false)},{t:'low8',v:l===null?null:-l}]}
     case 'RAZZ':{const l=best5(cards,lowA5,true);return [{t:'razz',v:l===null?null:-l}]}
@@ -603,7 +607,7 @@ function describe(t,v){
   if(t==='27'){const {rest:c,a}=unpack(-v,5);return c===0?a.map(RCH).join('-'):c===4||c===5||c===8?`${CATN[c]}（${RCH(a[0])}ハイ）`:`${CATN[c]}（${RCH(a[0])}）`}
   const x=-v,size=4-Math.floor(x/65536);return (size===4?'バドゥーギ ':size+'枚 ')+unpack(x%65536,size).a.map(RCH).join('-');
 }
-function halfLabel(gid,h){if(gid==='O8'||gid==='STUD8')return h===0?'ハイ':'ロー';if(gid==='BADEUCY')return h===0?'バドゥーギ':'2-7';if(gid==='BADACEY')return h===0?'バドゥーギ':'A-5';return ''}
+function halfLabel(gid,h){if(gid==='DRAMAHA')return h===0?'オマハ':'ドロー';if(gid==='O8'||gid==='BIGO'||gid==='STUD8')return h===0?'ハイ':'ロー';if(gid==='BADEUCY')return h===0?'バドゥーギ':'2-7';if(gid==='BADACEY')return h===0?'バドゥーギ':'A-5';return ''}
 function shareOf(ev,me){
   const H=ev[0].length,q=[];
   for(let h=0;h<H;h++){let b=null;for(const e of ev){const v=e[h].v;if(v!==null&&(b===null||v>b))b=v}if(b!==null)q.push([h,b])}
@@ -670,6 +674,48 @@ function polBda(hand,left){return polBdx(hand,left,'a5')}
 function polBdc(hand,left){return polBdx(hand,left,'27')}
 function policy(gid,hand,left){return gid==='A5TD'?polA5(hand,left):gid==='BADACEY'?polBda(hand,left):gid==='27TD'?pol27(hand,left):gid==='BADUGI'?polBdg(hand,left):polBdc(hand,left)}
 
+/* Dramaha draw: keep what makes the five-card hand, and protect the two hole cards that carry the Omaha half */
+function polDrm(hand,board){
+  const n=hand.length,keep=new Set(),cat=Math.floor(hi(hand)/P5);
+  const byR={};hand.forEach((c,i)=>{(byR[c.r]=byR[c.r]||[]).push(i)});
+  if(cat>=4)return [];
+  if(cat>=1){for(const r in byR)if(byR[r].length>=2)byR[r].forEach(i=>keep.add(i))}
+  else{
+    const bySu={};hand.forEach((c,i)=>{(bySu[c.s]=bySu[c.s]||[]).push(i)});
+    const fl=Object.values(bySu).find(a=>a.length>=4);
+    let st=null;
+    for(let top=14;top>=5&&!st;top--){const ids=[];for(let r=top;r>top-5;r--){const rr=r===1?14:r,a=byR[rr];if(a)ids.push(a[0])}if(ids.length>=4)st=ids.slice(0,4)}
+    if(fl)fl.forEach(i=>keep.add(i));else if(st)st.forEach(i=>keep.add(i));
+    else hand.map((c,i)=>[c.r,i]).filter(x=>x[0]>=13).sort((a,b)=>b[0]-a[0]).slice(0,2).forEach(x=>keep.add(x[1]));
+  }
+  if(board&&board.length>=3){
+    const B=board.slice(0,3),sc={};B.forEach(c=>{sc[c.s]=(sc[c.s]||0)+1});
+    let bv=-1,bp=null;
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const v=hi([hand[i],hand[j]].concat(B));if(v>bv){bv=v;bp=[i,j]}}
+    const oc=Math.floor(bv/P5);
+    if(oc>=2||(oc===1&&Math.floor(bv/65536)%16>=12))bp.forEach(i=>keep.add(i));
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(hand[i].s===hand[j].s&&(sc[hand[i].s]||0)>=2&&Math.max(hand[i].r,hand[j].r)>=12){keep.add(i);keep.add(j)}
+  }
+  const out=[];for(let i=0;i<n;i++)if(!keep.has(i))out.push(i);return out;
+}
+function chooseDiscardDrm(p){
+  const B=S.board.slice(0,3),key=c=>c.r*4+c.s,known=new Set(p.cards.concat(B).map(key));
+  const pool=fullDeck().filter(c=>!known.has(key(c))),N=pool.length;
+  const opps=S.players.filter(o=>o!==p&&!o.folded).slice(0,2),M=32,score=new Float64Array(M),iters=110;
+  // the standard choice gets a small head start, so sampling noise does not pick a strange discard
+  let rm=0;for(const i of polDrm(p.cards,B))rm|=1<<i;
+  for(let it=0;it<iters;it++){
+    for(let i=0;i<N;i++){const j=i+Math.floor(Math.random()*(N-i));const t=pool[i];pool[i]=pool[j];pool[j]=t}
+    // pool[0..2) turn and river, [2..7) hero draws, opponents after that (fixed across choices)
+    const board=B.concat(pool[0],pool[1]);let r=7;const oev=[];
+    for(const o of opps){const h=pool.slice(r,r+5);r+=5;for(const i of polDrm(h,B))h[i]=pool[r++];oev.push(evaluate('DRAMAHA',h,board))}
+    for(let m=0;m<M;m++){const h=p.cards.slice();let q=2;for(let i=0;i<5;i++)if(m>>i&1)h[i]=pool[q++];
+      score[m]+=shareOf([evaluate('DRAMAHA',h,board)].concat(oev),0)}
+  }
+  let bm=0,bs=-1;for(let m=0;m<M;m++){let k=0;for(let i=0;i<5;i++)if(!(m>>i&1))k++;const v=score[m]/iters+.004*k+(m===rm?.015:0);if(v>bs){bs=v;bm=m}}
+  const out=[];for(let i=0;i<5;i++)if(bm>>i&1)out.push(i);return out;
+}
+
 /* ---------- session state ---------- */
 let TOKEN=0;
 class Abort extends Error{}
@@ -732,7 +778,7 @@ function apply(p,a){
   const actBefore=S.currentBet,potBefore=totalPot();
   const word=S.currentBet===0?'ベット':(S.g.fam==='stud'&&S.currentBet<S.unit?'コンプリート':'レイズ');
   if(a.type==='call'&&S.currentBet<=p.streetBet)a={type:'check'};
-  if(a.type==='fold'){p.folded=true;p.lastAct='フォールド';if(S.g.fam==='draw')S.muck.push(...p.cards)}
+  if(a.type==='fold'){p.folded=true;p.lastAct='フォールド';if(S.g.fam==='draw'||S.g.dramaha)S.muck.push(...p.cards)}
   else if(a.type==='check'){p.lastAct='チェック'}
   else if(a.type==='call'){const amt=put(p,S.currentBet-p.streetBet);p.vol=true;p.lastAct=p.allIn?`オールイン ${amt}`:`コール ${amt}`}
   else if(a.type==='raise'){
@@ -799,8 +845,9 @@ function estimate(p,iters){
   const left=g.fam==='draw'?3-S.drawsDone:0;let total=0;
   for(let it=0;it<iters;it++){
     pi=0;let board=S.board;const hands=[];
-    if(g.fam==='board'){board=S.board.slice();while(board.length<5)board.push(take());hands.push(p.cards);
-      for(const o of opps){const h=[];for(let k=0;k<g.hole;k++)h.push(take());hands.push(h)}}
+    if(g.fam==='board'){board=S.board.slice();while(board.length<5)board.push(take());hands.push(p.cards.slice());
+      for(const o of opps){const h=[];for(let k=0;k<g.hole;k++)h.push(take());hands.push(h)}
+      if(g.dramaha&&!S.drawsDone){const fl=board.slice(0,3);for(const h of hands)for(const i of polDrm(h,fl)){const c=take();if(c)h[i]=c}}}
     else if(g.fam==='stud'){const me=p.cards.slice();while(me.length<7)me.push(take());hands.push(me);
       for(const o of opps){const h=o.cards.filter(c=>c.up);while(h.length<7)h.push(take());hands.push(h)}}
     else{hands.push(p.cards.slice());for(const o of opps){const h=[];for(let k=0;k<g.size;k++)h.push(take());hands.push(h)}
@@ -809,7 +856,7 @@ function estimate(p,iters){
   }
   return {eq:total/iters,n:opps.length+1};
 }
-const ITERS={LHE:220,NLHE:220,PLO:110,O8:110,STUD:150,STUD8:130,RAZZ:150,'27TD':110,BADUGI:130,BADEUCY:100,A5TD:120,BADACEY:100};
+const ITERS={LHE:220,NLHE:220,PLO:110,O8:110,STUD:150,STUD8:130,RAZZ:150,'27TD':110,BADUGI:130,BADEUCY:100,A5TD:120,BADACEY:100,BIGO:60,DRAMAHA:60};
 /* ---------- strong CPU ----------
    1) reads ranges: each bet/raise an opponent made this hand counts them as up to 3 hands ("beats you as often as N random hands"),
       scaled down for players who raise a lot over the session (bluffers get called lighter)
@@ -859,7 +906,7 @@ function estimateStrong(p,iters){
   const peekLow=sz=>{const idx=new Set();let guard=0;while(idx.size<sz&&idx.size<N-pi&&guard++<400){const i=pi+Math.floor(Math.random()*(N-pi));if(lowR(pool[i])<=8||Math.random()<.2)idx.add(i)}
     while(idx.size<sz&&idx.size<N-pi)idx.add(pi+Math.floor(Math.random()*(N-pi)));return [...idx].map(i=>pool[i])};
   const commit=cs=>{for(const c of cs){const j=pool.indexOf(c,pi);if(j<0)continue;const t=pool[pi];pool[pi]=pool[j];pool[j]=t;pi++}};
-  const left=g.fam==='draw'?3-S.drawsDone:0,maxM=g.fam==='board'?(g.hole===4?8:16):g.fam==='stud'?12:8;
+  const left=g.fam==='draw'?3-S.drawsDone:0,maxM=g.fam==='board'?(g.hole===5?6:g.hole===4?8:16):g.fam==='stud'?12:8;
   const Ms=new Map(opps.map(o=>[o,Math.min(maxM,Math.max(1,Math.round(1/rangeFrac(o))))]));
   // some of those bets and raises are bluffs: more of them from players who raise a lot
   const bluffP=new Map(opps.map(o=>{const rate=((o.tRaise||0)+2)/((o.tAct||0)+10);return [o,.12*Math.max(.6,Math.min(2.5,rate/.22))]}));
@@ -874,16 +921,25 @@ function estimateStrong(p,iters){
     policy(gid,h,lft).slice(0,k).forEach((i,n)=>{if(extra[n])h[i]=extra[n]});
     return {h,used:best.concat(extra)};
   };
+  // Dramaha after the draw: a hand that the standard rule would have drawn as many cards from as the player did
+  const drmCand=o=>{
+    const fl=S.board.slice(0,3),k=o.draws.length?o.draws[0]:0;let best=null,bd=99;
+    for(let t=0;t<(k<=1?30:12);t++){const h=peek(5),d=Math.abs(polDrm(h,fl).length-k);if(d<bd){bd=d;best=h}if(!d)break}
+    const extra=peek(10).filter(c=>!best.includes(c)).slice(0,k),h=best.slice();
+    polDrm(h,fl).slice(0,k).forEach((i,n)=>{if(extra[n])h[i]=extra[n]});
+    return {h,used:best.concat(extra)};
+  };
   let total=0;
   for(let it=0;it<iters;it++){
     pi=0;let board=S.board;const hands=[];
-    if(g.fam==='board'){board=S.board.slice();while(board.length<5)board.push(take());hands.push(p.cards)}
+    if(g.fam==='board'){board=S.board.slice();while(board.length<5)board.push(take());hands.push(p.cards.slice())}
     else if(g.fam==='stud'){const me=p.cards.slice();while(me.length<7)me.push(take());hands.push(me)}
     else hands.push(p.cards.slice());
     for(const o of opps){
       const M=Math.random()<bluffP.get(o)?1:Ms.get(o),cands=[];
       for(let c=0;c<M;c++){
-        if(g.fam==='board'){const h=peek(g.hole);if(h.length===g.hole)cands.push({h,used:h})}
+        if(g.dramaha&&S.drawsDone){if(N-pi>=12)cands.push(drmCand(o))}
+        else if(g.fam==='board'){const h=peek(g.hole);if(h.length===g.hole)cands.push({h,used:h})}
         else if(g.fam==='stud'){const up=o.cards.filter(x=>x.up),hid=peek(7-up.length);if(up.length+hid.length===7)cands.push({h:up.concat(hid),used:hid})}
         else if(N-pi>=g.size+6)cands.push(drawCand(o));
       }
@@ -892,6 +948,7 @@ function estimateStrong(p,iters){
       const pick=cands[strongestOf(ev)];commit(pick.used||pick.h);hands.push(pick.h);
     }
     if(g.fam==='draw')for(let d=left;d>=1;d--)for(const h of hands){for(const i of policy(gid,h,d)){const c=take();if(c)h[i]=c}}
+    if(g.dramaha&&!S.drawsDone){const fl=board.slice(0,3);for(const h of hands)for(const i of polDrm(h,fl)){const c=take();if(c)h[i]=c}}
     total+=shareOf(hands.map(h=>evaluate(gid,h,board)),0);
   }
   return {eq:total/iters,n:opps.length+1};
@@ -935,8 +992,25 @@ function chooseDiscardStrong(p,d){
   const out=[];for(let i=0;i<size;i++)if(bm>>i&1)out.push(i);return out;
 }
 function streetsLeft(){const g=S.g;return g.fam==='stud'?4-S.street:3-S.street}
+/* First-round hand selection. Pot odds alone make almost any hand a call before the first card/draw in limit games
+   (CPUs played 70-80% of hands). Real players fold weak starting hands because later, bigger bets cost more than the
+   cheap first call. s = equity x players: 1.0 is an average share; the bars below admit roughly the top 35-40% of hands. */
+const ENTRY={LHE:1.04,O8:1.04,RAZZ:1.12,STUD:1.04,STUD8:1.05,'27TD':1.05,A5TD:1.03,BADUGI:1.04,NLHE:1.08,PLO:1.04,BADEUCY:1.03,BADACEY:1.02,BIGO:1.04,DRAMAHA:1.04};
+function entryGate(p,L,s,strong){
+  if(S.street!==0||L.canCheck||p.vol)return null;
+  let bar=(ENTRY[S.g.id]||1.05)-(p.style.loose-.1)*.5;
+  if(!strong)bar-=.02;
+  if(L.toCall<=Math.round(bbAmt()/2)+1)bar-=.04;        // completing the small blind or calling a bring-in is cheap
+  if(p.streetBet>0)bar-=.06;                            // blinds already have chips in: defend wider
+  if(S.raises>=(S.g.fam==='stud'?1:2))bar+=.12;          // someone already raised: stricter
+  if(s<bar)return {type:'fold'};
+  const firstIn=S.raises<=(S.g.fam==='stud'?0:1);
+  if(firstIn&&L.canRaise&&s>=bar+.06&&Math.random()<(strong?.75:.45)*p.style.aggr)return raiseAct(L,s,totalPot(),strong);
+  return null;
+}
 function cpuDecideStrong(p){
   const L=legal(p),{eq,n}=estimateStrong(p,Math.round(ITERS[S.g.id]*1.5)),r=Math.random(),pot=totalPot(),nO=n-1,s=eq*n,last=streetsLeft()<=0;
+  const gate=entryGate(p,L,s,true);if(gate)return gate;
   const behind=S.players.filter(o=>o!==p&&!o.folded&&!o.allIn&&!o.acted).length,ag=p.style.aggr;
   // bluff only as much as the remaining opponents actually fold
   const foes=S.players.filter(o=>o!==p&&!o.folded);
@@ -960,8 +1034,9 @@ function cpuDecide(p){
   if(isStrong(p))return cpuDecideStrong(p);
   const L=legal(p),est=estimate(p,ITERS[S.g.id]),n=est.n,st=p.style,r=Math.random(),pot=totalPot();
   // in big-bet games a large bet means a strong hand even to the normal CPU: discount equity as the bet grows
-  const big=L.isPot&&L.toCall>0?Math.min(1,L.toCall/Math.max(pot-L.toCall,1)):0;
+  const big=L.isPot&&L.toCall>0&&(S.street>0||S.raises>=2)?Math.min(1,L.toCall/Math.max(pot-L.toCall,1)):0;
   const eq=est.eq*(1-.35*big),s=eq*n;
+  const gate=entryGate(p,L,s,false);if(gate)return gate;
   if(L.canCheck){
     if(L.canRaise&&((s>1.3/st.aggr&&r>.12)||(r<.06*st.aggr&&S.street>=1)))return raiseAct(L,s,pot);
     return {type:'check'};
@@ -1020,7 +1095,8 @@ const KEYS={LHE:['ボードと手札の7枚から最強の5枚','リミット：
   STUD8:['ハイと8以下のローで半分ずつ','ローがいなければハイが総取り'],'27TD':['一番低い手が勝ち。Aはハイ','ストレート・フラッシュは不利'],
   A5TD:['一番低い手が勝ち。Aはロー','ストレート・フラッシュは関係なし'],BADUGI:['4枚すべてスートも数字も違う手を目指す','低いほど強い。Aはロー'],
   NLHE:['額は自由。いつでもオールイン','ボードと手札の7枚から最強の5枚'],PLO:['手札から必ず2枚、ボードから3枚','ベットはポットの額まで'],
-  BADEUCY:['2-7とバドゥーギで半分ずつ','Aはどちらでもハイ（悪いカード）'],BADACEY:['A-5とバドゥーギで半分ずつ','Aはどちらでもロー（良いカード）']};
+  BADEUCY:['2-7とバドゥーギで半分ずつ','Aはどちらでもハイ（悪いカード）'],BADACEY:['A-5とバドゥーギで半分ずつ','Aはどちらでもロー（良いカード）'],
+  BIGO:['手札は5枚、使うのは必ず2枚','8以下のローとハイで半分ずつ・ポットリミット'],DRAMAHA:['オマハのハイと、手札5枚だけのハイで半分ずつ','フロップの後に1回だけ交換できる']};
 const FAMNAME={board:'ボード系',stud:'スタッド系',draw:'ドロー系'};
 async function gameIntro(prevId){
   const t=TOKEN;S.intro={prev:prevId?GBY[prevId]:null};render();
@@ -1052,6 +1128,7 @@ async function playBlindGame(){
   if(await round(first))return;
   if(g.fam==='board'){
     for(let st=1;st<=3;st++){
+      if(g.dramaha&&st===2){await drawPhase(1);S.drawsDone=1}
       resetStreet();S.street=st;
       burn();const k=st===1?3:1;for(let i=0;i<k;i++)S.board.push(dealCard());
       S.players.forEach(p=>{if(!p.folded&&!p.allIn)p.lastAct=''});
@@ -1075,7 +1152,7 @@ async function drawPhase(d){
     S.acting=i;render();
     let disc;
     if(p.human){S.sel=new Set();disc=await ask('draw')}
-    else{await wait(speedBase()*.8*pace());disc=isStrong(p)?chooseDiscardStrong(p,d):policy(S.g.id,p.cards,4-d)}
+    else{await wait(speedBase()*.8*pace());disc=S.g.dramaha?(isStrong(p)?chooseDiscardDrm(p):polDrm(p.cards,S.board)):isStrong(p)?chooseDiscardStrong(p,d):policy(S.g.id,p.cards,4-d)}
     const old=[];
     for(const idx of disc){old.push(p.cards[idx]);p.cards[idx]={...dealCard(p),fresh:true}}
     S.muck.push(...old);p.draws.push(disc.length);
@@ -1195,7 +1272,7 @@ function posBadge(i){
   if(g.fam==='stud')return i===S.bringIn&&S.street===0&&!S.over?'<span class="pos">BI</span>':'';
   const B=S.button,hu=S.sbI===B;return i===B?`<span class="pos d">${hu?'D/SB':'D'}</span>`:i===S.sbI?'<span class="pos">SB</span>':i===S.bbI?'<span class="pos">BB</span>':'';
 }
-function drawHist(p){return S.g&&S.g.fam==='draw'&&p.draws.length?`<span class="dh">交換 ${p.draws.map(n=>n===0?'パット':n).join(' · ')}</span>`:''}
+function drawHist(p){return S.g&&(S.g.fam==='draw'||S.g.dramaha)&&p.draws.length?`<span class="dh">交換 ${p.draws.map(n=>n===0?'パット':n).join(' · ')}</span>`:''}
 function seatHTML(p,i){
   if(p.out)return `<div class="seat out"><div class="info"><div class="sh"><span class="nm">${p.name}</span></div><div class="meta"><span>敗退 ${p.place}位</span></div></div><div class="cbox"></div></div>`;
   const g=S.g,cls=['seat'];if(S.acting===i)cls.push('acting');if(p.folded)cls.push('folded');if(S.over&&p.won>0)cls.push('win');
@@ -1220,14 +1297,15 @@ function seatHTML(p,i){
 }
 function liveDesc(p){
   const g=S.g;if(!g||!p.cards.length)return '';let ev;
-  if(g.fam==='board'){if(S.board.length<3)return '';ev=evaluate(g.id,p.cards,S.board)}
+  if(g.fam==='board'){if(S.board.length<3)return g.dramaha&&p.cards.length===5?'ドロー: '+describe('high',hi(p.cards)):'';ev=evaluate(g.id,p.cards,S.board)}
   else if(g.fam==='stud'){if(p.cards.length<5)return '';ev=evaluate(g.id,p.cards,[])}
   else ev=evaluate(g.id,p.cards,[]);
   return ev.map((h,k)=>{const lab=halfLabel(g.id,k),d=describe(h.t,h.v);return lab?`${lab}: ${d}`:d}).join(' / ');
 }
 function ladder(){
   const g=S.g;let steps,idx;
-  if(g.fam==='board'){steps=['プリフロップ','フロップ','ターン','リバー'];idx=S.street}
+  if(g.dramaha){steps=['プリフロップ','フロップ','交換','ターン','リバー'];idx=S.phase==='draw'?2:S.street>=2?S.street+1:S.street}
+  else if(g.fam==='board'){steps=['プリフロップ','フロップ','ターン','リバー'];idx=S.street}
   else if(g.fam==='stud'){steps=['3rd','4th','5th','6th','7th'];idx=S.street}
   else{steps=['ベット','ドロー1','ベット','ドロー2','ベット','ドロー3','ベット'];idx=S.phase==='draw'?S.drawNo*2-1:S.street*2}
   if(S.reveal)idx=steps.length;
@@ -1293,7 +1371,7 @@ function renderActs(){
     el.innerHTML=`<div class="acts" style="flex-direction:column"><div class="note">表向きのカードで、あなたがブリングインです。最低額の ${bringAmt()} か、スモールベットの ${smallBet()} にコンプリートするかを選んでください</div><div class="acts"><button class="btn" data-act="bringin" type="button">ブリングイン ${bringAmt()}</button><button class="btn pri" data-act="complete" type="button">コンプリート ${smallBet()}</button></div></div>`;
   }else if(P&&P.type==='draw'){
     const n=S.sel.size;
-    el.innerHTML=`<div class="acts" style="flex-direction:column"><div class="note">${S.drawNo}回目の交換：捨てるカードをタップして選んでください</div><div class="acts"><button class="btn pri" data-act="draw" type="button">${n?`${n}枚交換する`:'スタンドパット（交換しない）'}</button></div><div class="kbd">Enter で確定</div></div>`;
+    el.innerHTML=`<div class="acts" style="flex-direction:column"><div class="note">${S.g.dramaha?'交換（1回だけ・0〜5枚）':`${S.drawNo}回目の交換`}：捨てるカードをタップして選んでください</div><div class="acts"><button class="btn pri" data-act="draw" type="button">${n?`${n}枚交換する`:'スタンドパット（交換しない）'}</button></div><div class="kbd">Enter で確定</div></div>`;
   }else if(P&&P.type==='tourEnd'){
     el.innerHTML=`<div class="acts"><button class="btn pri" data-act="tour" type="button">もう一度トーナメント</button><button class="btn" data-act="free" type="button">フリープレイ</button><button class="btn" data-act="home" type="button">ロビー</button></div>`;
   }else if(P&&P.type==='next'){
@@ -1381,7 +1459,7 @@ document.addEventListener('keydown',e=>{
   else if(P.type==='draw'&&e.key==='Enter')act('draw');
   else if(P.type==='next'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();act('next')}
 });
-const PRESETS=[['HORSE',['LHE','O8','RAZZ','STUD','STUD8']],['8ゲーム',['27TD','LHE','O8','RAZZ','STUD','STUD8','NLHE','PLO']],['ドロー系',['27TD','A5TD','BADUGI','BADEUCY','BADACEY']],['全'+GAMES.length+'種',GAMES.map(g=>g.id)]];
+const PRESETS=[['HORSE',['LHE','O8','RAZZ','STUD','STUD8']],['8ゲーム',['27TD','LHE','O8','RAZZ','STUD','STUD8','NLHE','PLO']],['ドロー系',['27TD','A5TD','BADUGI','BADEUCY','BADACEY']],['オマハ系',['O8','PLO','BIGO','DRAMAHA']],['全'+GAMES.length+'種',GAMES.map(g=>g.id)]];
 function renderPresets(){const on=[...SET.enabled].sort().join();$('#presets').innerHTML=PRESETS.map(([n,ids],i)=>`<button type="button" class="chipbtn" data-act="preset" data-i="${i}" aria-pressed="${[...ids].sort().join()===on}">${n}</button>`).join('')}
 function openSettings(){
   renderPresets();
@@ -1546,6 +1624,8 @@ const ACH=[
   {id:'lhe_boat',name:'ホールデムの大物',desc:'ホールデムでフルハウス以上を作って勝つ',pts:60,test:e=>e.gid==='LHE'&&e.sdWin&&hiCat(e)>=6},
   {id:'plo_flush',name:'オマハの本命',desc:'PLOでフラッシュ以上を作って勝つ',pts:50,test:e=>e.gid==='PLO'&&e.sdWin&&hiCat(e)>=5},
   {id:'o8_scoop',name:'オマハで総取り',desc:'オマハ ハイローでポットを総取りする',pts:60,test:e=>e.gid==='O8'&&e.scoop},
+  {id:'bigo_scoop',name:'ビッグOで総取り',desc:'ビッグOでポットを総取りする',pts:60,test:e=>e.gid==='BIGO'&&e.scoop},
+  {id:'drm_scoop',name:'ドラマハ総取り',desc:'ドラマハでオマハとドローの両方を取る',pts:70,test:e=>e.gid==='DRAMAHA'&&e.scoop},
   {id:'s8_scoop',name:'スタッドで総取り',desc:'スタッド ハイローでポットを総取りする',pts:60,test:e=>e.gid==='STUD8'&&e.scoop},
   {id:'rollup',name:'ロールアップ',desc:'スタッド系で最初の3枚が同じ数字',pts:80,test:e=>e.rollup},
   {id:'razz6',name:'ラズの名手',desc:'ラズで6ロー以下を作って勝つ',pts:50,test:e=>e.gid==='RAZZ'&&e.sdWin&&(i=>i.cat===0&&i.a[0]<=6)(lowInfo(e,0))},
@@ -1721,6 +1801,12 @@ BADEUCY:{facts:[['カード','5枚'],['交換','3回'],['勝ち','ポットを2-
 BADACEY:{facts:[['カード','5枚'],['交換','3回'],['勝ち','ポットをA-5ローとバドゥーギで半分ずつ'],['A-5ロー','5枚すべてで判定。Aはロー、ストレートとフラッシュは関係なし'],['バドゥーギ','5枚から一番いい4枚で判定。Aはロー'],['最強のカード','A（どちらでも一番いい）'],['ベット',LIMIT_DRAW],['進行',FLOW_DRAW]],
   ex:[['理想','Ac 2d 3h 4s 5c','A-5は5-4-3-2-A、バドゥーギは4-3-2-Aで両取り'],['分かれる例','Ac 2c 3h 4s 6d','A-5は6-4-3-2-A、バドゥーギは6-4-3-A（♣が2枚なので2を外す）']],
   tips:['バデューシーとの違いはAの扱い。こちらはAが最強のカードです。'] },
+BIGO:{facts:[['手札','5枚'],['ボード','5枚'],['役の作り方','必ず手札から2枚＋ボードから3枚（ちょうど）'],['勝ち','ポットをハイとローで半分ずつ'],['ローの条件','8以下のバラバラの5枚（Aはロー扱い）。条件を満たす人がいなければハイが総取り'],['ベット','ポットリミット。ブラインド 10/20。ベット・レイズの上限は「コールした後のポットの額」まで'],['進行',FLOW_BOARD]],
+  ex:[['強い手札','Ah 2h 3s Kd Ks','A-2のロー、ナッツフラッシュ狙い、Kのペアがそろう'],['よくある失敗','Ah 2c 3d 4s 9h','ボードが 5c 6d Kh 8s Jc でも、手札から使えるのは2枚だけ。ローは A-2 か A-3 などの2枚で作る']],
+  tips:['オマハ ハイローの手札が5枚になったゲーム。組み合わせが10通りあるので、ハイもローもナッツ級でないと勝ちにくいです。','手札にA-2があるとナッツローを狙えます。ハイの強い手と組み合わさると総取り（スクープ）を狙えます。'] },
+DRAMAHA:{facts:[['手札','5枚'],['ボード','5枚'],['交換','1回だけ。フロップのベットが終わった後に0〜5枚'],['勝ち','ポットを2つのハイで半分ずつ'],['オマハ側','必ず手札から2枚＋ボードから3枚で作るハイ'],['ドロー側','手札の5枚だけで作るハイ（ボードは使わない）'],['ベット',LIMIT_BOARD],['進行','手札が配られる → ベット（プリフロップ） → ボードに3枚（フロップ） → ベット → 交換（1回だけ） → 1枚（ターン） → ベット → 1枚（リバー） → ベット → ショーダウン']],
+  ex:[['両方に強い','Ah Ad Ac Kh Ks','ドロー側はフルハウス、オマハ側もAのペアを使える'],['交換の考え方','Qh Jh Th 9h 2c','ドロー側はフラッシュ・ストレート狙いで1枚交換。オマハ側の手を崩さないかも確認']],
+  tips:['交換はオマハ側の手札も変えてしまいます。ボードに合った2枚は残すのが基本です。','ドロー側はボードと関係ないので、フロップを見てから「どちらの半分を狙うか」を決めましょう。'] },
 };
 function helpAim(){return `
   <div class="sec2"><h3>このゲームの目的</h3>
@@ -1731,7 +1817,7 @@ function helpAim(){return `
     <li><b>相手を全員降ろす</b>：ベットやレイズで相手が全員フォールドすれば、手を見せずにポットを取れます（ブラフ）。</li></ol>
     <p class="muted">「一番いい手」が何かはゲームごとに違います。高い役が勝つゲーム、低い手が勝つゲーム、ポットを高い手と低い手で半分ずつ分けるゲームがあります。</p></div>
   <div class="sec2"><h3>ミックスゲームとは</h3>
-    <p>決まったハンド数ごとに、遊ぶポーカーの種類が入れ替わる形式です。このアプリでは12種類を順番に遊びます。1つのゲームが得意でも、全部で勝てないとトータルでは勝てません。</p>
+    <p>決まったハンド数ごとに、遊ぶポーカーの種類が入れ替わる形式です。このアプリでは${GAMES.length}種類を順番に遊びます。1つのゲームが得意でも、全部で勝てないとトータルでは勝てません。</p>
     <p>目標は、苦手なゲームを減らして全体で勝ち越すこと。「収支」のゲーム別成績で得意・苦手が分かります。慣れてきたら、設定でCPUを「強い」にして挑戦してください。</p></div>`}
 function helpPlay(){return `
   <div class="sec2"><h3>2つのモード</h3><ul>
